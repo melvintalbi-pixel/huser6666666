@@ -7,28 +7,38 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
 </head>
-<body class="game-container">
-    <h1>PONG HORREUR</h1>
-    <canvas id="pongCanvas" width="800" height="500"></canvas>
-    <div class="score">
-        <span id="playerScore">0</span> - <span id="computerScore">0</span>
+<body>
+    <div id="levelSelect" class="popup">
+        <h2>Choisis ton niveau</h2>
+        <div class="difficulty-buttons">
+            <button onclick="showWeakPopup()">Facile</button>
+            <button onclick="showFragilePopup()">Moyen</button>
+        </div>
     </div>
-    <div class="instructions">
-        Utilisez les touches <strong>souris</strong> ou <strong>doigt</strong> pour bouger votre raquette.<br>
-        (Les faibles n'ont pas le droit de choisir le niveau.)
-    </div>
-    <div class="difficulty-buttons">
-        <button onclick="showWeakPopup()">Facile</button>
-        <button onclick="showFragilePopup()">Moyen</button>
-    </div>
-    <div id="weakPopup" class="popup">
+
+    <div id="weakPopup" class="popup" style="display: none;">
         <h2>GROS FAIBLE</h2>
         <button onclick="closePopup()">OK, je veux le niveau difficile</button>
     </div>
-    <div id="fragilePopup" class="popup">
+
+    <div id="fragilePopup" class="popup" style="display: none;">
         <h2>FRAGILE</h2>
         <button onclick="closePopup()">OK, je veux le niveau difficile</button>
     </div>
+
+    <div id="gameContainer" style="display: none;">
+        <div class="game-container">
+            <h1>PONG HORREUR</h1>
+            <canvas id="pongCanvas" width="800" height="500"></canvas>
+            <div class="score">
+                <span id="playerScore">0</span> - <span id="computerScore">0</span>
+            </div>
+            <div class="instructions">
+                Utilisez la <strong>souris</strong> ou votre <strong>doigt</strong> pour bouger votre raquette.
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
