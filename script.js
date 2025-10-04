@@ -1,10 +1,10 @@
 // Récupération des éléments
+const canvas = document.getElementById("pongCanvas");
+const ctx = canvas.getContext("2d");
 const levelSelect = document.getElementById("levelSelect");
 const weakPopup = document.getElementById("weakPopup");
 const fragilePopup = document.getElementById("fragilePopup");
 const gameContainer = document.getElementById("gameContainer");
-const canvas = document.getElementById("pongCanvas");
-const ctx = canvas.getContext("2d");
 
 // Variables du jeu
 const ballRadius = 10;
@@ -12,11 +12,15 @@ let x = canvas.width / 2;
 let y = canvas.height / 2;
 let dx = 5;
 let dy = 5;
-let ballColor = "#e74c3c";
+const ballColor = "#e74c3c";
+
+// Raquettes
 const paddleHeight = 80;
 const paddleWidth = 10;
 let playerPaddleY = canvas.height / 2 - paddleHeight / 2;
 let computerPaddleY = canvas.height / 2 - paddleHeight / 2;
+
+// Scores
 let playerScore = 0;
 let computerScore = 0;
 
