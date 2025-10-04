@@ -1,8 +1,10 @@
-// Récupération du canvas et du contexte
-const canvas = document.getElementById("pongCanvas");
-const ctx = canvas.getContext("2d");
+// Récupération des éléments
+const levelSelect = document.getElementById("levelSelect");
 const weakPopup = document.getElementById("weakPopup");
 const fragilePopup = document.getElementById("fragilePopup");
+const gameContainer = document.getElementById("gameContainer");
+const canvas = document.getElementById("pongCanvas");
+const ctx = canvas.getContext("2d");
 
 // Variables du jeu
 const ballRadius = 10;
@@ -11,16 +13,30 @@ let y = canvas.height / 2;
 let dx = 5;
 let dy = 5;
 let ballColor = "#e74c3c";
-
-// Raquettes
 const paddleHeight = 80;
 const paddleWidth = 10;
 let playerPaddleY = canvas.height / 2 - paddleHeight / 2;
 let computerPaddleY = canvas.height / 2 - paddleHeight / 2;
-
-// Scores
 let playerScore = 0;
 let computerScore = 0;
+
+// Affichage des pop-ups
+function showWeakPopup() {
+    levelSelect.style.display = "none";
+    weakPopup.style.display = "block";
+}
+
+function showFragilePopup() {
+    levelSelect.style.display = "none";
+    fragilePopup.style.display = "block";
+}
+
+function closePopup() {
+    weakPopup.style.display = "none";
+    fragilePopup.style.display = "none";
+    gameContainer.style.display = "block";
+    startGame();
+}
 
 // Contrôle de la raquette avec la souris/tactile
 canvas.addEventListener("mousemove", movePaddle);
@@ -30,21 +46,6 @@ function movePaddle(e) {
     const rect = canvas.getBoundingClientRect();
     const yPos = (e.clientY || e.touches[0].clientY) - rect.top - paddleHeight / 2;
     playerPaddleY = Math.max(0, Math.min(canvas.height - paddleHeight, yPos));
-}
-
-// Affichage des pop-ups
-function showWeakPopup() {
-    weakPopup.style.display = "block";
-}
-
-function showFragilePopup() {
-    fragilePopup.style.display = "block";
-}
-
-function closePopup() {
-    weakPopup.style.display = "none";
-    fragilePopup.style.display = "none";
-    startGame();
 }
 
 // Dessin de la balle
@@ -72,46 +73,37 @@ function updateScore() {
 // Logique de l'ordinateur (niveau difficile)
 function computerAI() {
     const computerPaddleCenter = computerPaddleY + paddleHeight / 2;
-    // L'ordinateur suit la balle avec une légère latence
     if (computerPaddleCenter < y - 10) {
         computerPaddleY += 5;
     } else if (computerPaddleCenter > y + 10) {
         computerPaddleY -= 5;
     }
-    // Limite les mouvements de la raquette de l'ordinateur
     computerPaddleY = Math.max(0, Math.min(canvas.height - paddleHeight, computerPaddleY));
 }
 
 // Détection des collisions
 function collisionDetection() {
-    // Collision avec les bords haut et bas
     if (y + dy < ballRadius || y + dy > canvas.height - ballRadius) {
         dy = -dy;
     }
 
-    // Collision avec la raquette du joueur
     if (x + dx < paddleWidth && y > playerPaddleY && y < playerPaddleY + paddleHeight) {
         dx = -dx;
-        // Effet de rebond dynamique
         const hitPosition = (y - playerPaddleY) / paddleHeight;
         dy = -1 * (8 - (hitPosition * 12));
     }
 
-    // Collision avec la raquette de l'ordinateur
     if (x + dx > canvas.width - paddleWidth - ballRadius && y > computerPaddleY && y < computerPaddleY + paddleHeight) {
         dx = -dx;
-        // Effet de rebond dynamique
         const hitPosition = (y - computerPaddleY) / paddleHeight;
         dy = -1 * (8 - (hitPosition * 12));
     }
 
-    // Point pour l'ordinateur
     if (x + dx < 0) {
         computerScore++;
         resetBall();
     }
 
-    // Point pour le joueur
     if (x + dx > canvas.width) {
         playerScore++;
         resetBall();
