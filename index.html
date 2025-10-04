@@ -3,16 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pong</title>
+    <title>Pong Horreur</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
 </head>
-<body class="game-container">
-    <canvas id="pongCanvas" width="800" height="500"></canvas>
-    <div class="score">
-        <span id="playerScore">0</span> - <span id="computerScore">0</span>
-    </div>
-    <div class="instructions">
-        Utilisez les touches <strong>Z</strong> et <strong>S</strong> pour bouger votre raquette.
+<body>
+    <div class="game-container">
+        <h1>PONG HORREUR</h1>
+        <canvas id="pongCanvas" width="800" height="500"></canvas>
+        <div class="score">
+            <span id="playerScore">0</span> - <span id="computerScore">0</span>
+        </div>
+        <div class="instructions">
+            Déplace ta raquette avec la <strong>souris</strong> ou ton <strong>doigt</strong>.<br>
+            (Les faibles n'ont pas le droit de choisir le niveau.)
+        </div>
+        <div class="difficulty-buttons">
+            <button onclick="showWeakPopup()">Facile</button>
+            <button onclick="showFragilePopup()">Moyen</button>
+        </div>
+        <div id="weakPopup" class="popup">
+            <h2>GROS FAIBLE</h2>
+            <button onclick="closePopup()">OK, je veux le niveau difficile</button>
+        </div>
+        <div id="fragilePopup" class="popup">
+            <h2>FRAGILE</h2>
+            <button onclick="closePopup()">OK, je veux le niveau difficile</button>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
