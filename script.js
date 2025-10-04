@@ -13,14 +13,13 @@ const passwordInput = document.getElementById("passwordInput");
 const ballRadius = 10;
 let x = canvas.width / 2;
 let y = canvas.height / 2;
-let dx = 12; // Vitesse initiale ultra-rapide
+let dx = 12; // Vitesse constante et rapide
 let dy = 12;
 const ballColor = "#e74c3c";
 
-// Raquettes (très larges et ultra-arrondies)
+// Raquettes (larges)
 const paddleHeight = 150;
-const paddleWidth = 25;
-const paddleRadius = 25;
+const paddleWidth = 20;
 let playerPaddleY = canvas.height / 2 - paddleHeight / 2;
 let computerPaddleY = canvas.height / 2 - paddleHeight / 2;
 
@@ -29,7 +28,6 @@ let playerScore = 0;
 let computerScore = 0;
 const maxScore = 3;
 let gameActive = false;
-let pointCooldown = false;
 
 // Affichage des pop-ups
 function showWeakPopup() {
@@ -69,19 +67,11 @@ function drawBall() {
     ctx.closePath();
 }
 
-// Dessin des raquettes ultra-arrondies
+// Dessin des raquettes
 function drawPaddles() {
     ctx.fillStyle = "#e74c3c";
-
-    // Raquette du joueur
-    ctx.beginPath();
-    ctx.roundRect(0, playerPaddleY, paddleWidth, paddleHeight, paddleRadius);
-    ctx.fill();
-
-    // Raquette de l'ordinateur
-    ctx.beginPath();
-    ctx.roundRect(canvas.width - paddleWidth, computerPaddleY, paddleWidth, paddleHeight, paddleRadius);
-    ctx.fill();
+    ctx.fillRect(0, playerPaddleY, paddleWidth, paddleHeight);
+    ctx.fillRect(canvas.width - paddleWidth, computerPaddleY, paddleWidth, paddleHeight);
 }
 
 // Mise à jour des scores
@@ -90,21 +80,21 @@ function updateScore() {
     document.getElementById("computerScore").textContent = computerScore;
 }
 
-// Logique de l'ordinateur avec beaucoup d'erreurs
+// Logique de l'ordinateur très nulle
 function computerAI() {
     if (!gameActive) return;
 
-    // L'ordinateur a 60% de chances de rater la balle
-    if (Math.random() < 0.6) {
-        // Si l'ordinateur rate, il bouge aléatoirement
-        computerPaddleY += (Math.random() - 0.5) * 30; // Plus de tremblements
+    // Le bot est très mauvais et ne suit pas bien la balle
+    if (Math.random() < 0.7) { // 70% de chances de ne pas suivre la balle
+        // Il bouge aléatoirement
+        computerPaddleY += (Math.random() - 0.5) * 10;
     } else {
-        // Sinon, il suit la balle avec une grande latence
+        // Parfois il essaie de suivre la balle, mais mal
         const computerPaddleCenter = computerPaddleY + paddleHeight / 2;
-        if (computerPaddleCenter < y - 40) { // Plus de latence
-            computerPaddleY += 7;
-        } else if (computerPaddleCenter > y + 40) {
-            computerPaddleY -= 7;
+        if (computerPaddleCenter < y - 50) { // Grande latence
+            computerPaddleY += 3;
+        } else if (computerPaddleCenter > y + 50) {
+            computerPaddleY -= 3;
         }
     }
     computerPaddleY = Math.max(0, Math.min(canvas.height - paddleHeight, computerPaddleY));
@@ -112,64 +102,51 @@ function computerAI() {
 
 // Détection des collisions et gestion des points
 function checkPoint() {
-    if (pointCooldown) return;
+    // Collision avec les bords haut et bas
+    if (y + dy < ballRadius || y + dy > canvas.height - ballRadius) {
+        dy = -dy;
+    }
 
+    // Collision avec la raquette du joueur
+    if (x + dx < paddleWidth && y > playerPaddleY && y < playerPaddleY + paddleHeight) {
+        dx = -dx;
+    }
+
+    // Collision avec la raquette de l'ordinateur
+    if (x + dx > canvas.width - paddleWidth - ballRadius && y > computerPaddleY && y < computerPaddleY + paddleHeight) {
+        dx = -dx;
+    }
+
+    // Point pour l'ordinateur
     if (x + dx < 0) {
-        pointCooldown = true;
         computerScore++;
         updateScore();
         if (computerScore >= maxScore) {
-            setTimeout(() => endGame(false), 500);
+            endGame(false);
         } else {
-            setTimeout(() => {
-                resetBall();
-                pointCooldown = false;
-            }, 500);
+            resetBall();
         }
-    } else if (x + dx > canvas.width) {
-        pointCooldown = true;
+    }
+
+    // Point pour le joueur
+    if (x + dx > canvas.width) {
         playerScore++;
         updateScore();
         if (playerScore >= maxScore) {
-            setTimeout(() => endGame(true), 500);
+            endGame(true);
         } else {
-            setTimeout(() => {
-                resetBall();
-                pointCooldown = false;
-            }, 500);
+            resetBall();
         }
-    }
-
-    // Collision avec les bords haut et bas (rebonds ultra-aléatoires)
-    if (y + dy < ballRadius || y + dy > canvas.height - ballRadius) {
-        dy = -dy * (1 + (Math.random() * 1.5 - 0.75));
-    }
-
-    // Collision avec la raquette du joueur (rebonds ultra-aléatoires)
-    if (x + dx < paddleWidth + ballRadius && y > playerPaddleY && y < playerPaddleY + paddleHeight) {
-        dx = -dx * (1 + (Math.random() * 1.5 - 0.75));
-        dy = dy * (1 + (Math.random() * 1.5 - 0.75));
-        dx *= 1.1; // Accélération après rebond
-        dy *= 1.1;
-    }
-
-    // Collision avec la raquette de l'ordinateur (rebonds ultra-aléatoires)
-    if (x + dx > canvas.width - paddleWidth - ballRadius && y > computerPaddleY && y < computerPaddleY + paddleHeight) {
-        dx = -dx * (1 + (Math.random() * 1.5 - 0.75));
-        dy = dy * (1 + (Math.random() * 1.5 - 0.75));
-        dx *= 1.1; // Accélération après rebond
-        dy *= 1.1;
     }
 }
 
-// Réinitialisation de la balle avec une direction ultra-aléatoire
+// Réinitialisation de la balle
 function resetBall() {
     x = canvas.width / 2;
     y = canvas.height / 2;
-
-    // Direction ultra-aléatoire pour équilibrer les chances
-    dx = (Math.random() > 0.5 ? 1 : -1) * (12 + Math.random() * 4); // Vitesse initiale entre 12 et 16
-    dy = (Math.random() * 10) - 5;
+    // Direction aléatoire mais toujours rapide
+    dx = Math.random() > 0.5 ? 12 : -12;
+    dy = (Math.random() * 8) - 4;
 }
 
 // Fin du jeu
@@ -229,7 +206,6 @@ function startGame() {
     computerScore = 0;
     updateScore();
     gameActive = true;
-    pointCooldown = false;
     resetBall();
     draw();
 }
