@@ -27,6 +27,7 @@ let computerPaddleY = canvas.height / 2 - paddleHeight / 2;
 let playerScore = 0;
 let computerScore = 0;
 const maxScore = 3; // Premier à 3 points gagne
+let gameActive = false; // Pour contrôler l'état du jeu
 
 // Affichage des pop-ups
 function showWeakPopup() {
@@ -51,6 +52,7 @@ canvas.addEventListener("mousemove", movePaddle);
 canvas.addEventListener("touchmove", movePaddle);
 
 function movePaddle(e) {
+    if (!gameActive) return;
     const rect = canvas.getBoundingClientRect();
     const yPos = (e.clientY || e.touches[0].clientY) - rect.top - paddleHeight / 2;
     playerPaddleY = Math.max(0, Math.min(canvas.height - paddleHeight, yPos));
@@ -80,6 +82,7 @@ function updateScore() {
 
 // Logique de l'ordinateur (niveau difficile)
 function computerAI() {
+    if (!gameActive) return;
     const computerPaddleCenter = computerPaddleY + paddleHeight / 2;
     if (computerPaddleCenter < y - 10) {
         computerPaddleY += 5;
@@ -91,45 +94,46 @@ function computerAI() {
 
 // Détection des collisions
 function collisionDetection() {
+    if (!gameActive) return;
+
+    // Collision avec les bords haut et bas
     if (y + dy < ballRadius || y + dy > canvas.height - ballRadius) {
         dy = -dy;
     }
 
+    // Collision avec la raquette du joueur
     if (x + dx < paddleWidth && y > playerPaddleY && y < playerPaddleY + paddleHeight) {
         dx = -dx;
         const hitPosition = (y - playerPaddleY) / paddleHeight;
         dy = -1 * (8 - (hitPosition * 12));
     }
 
+    // Collision avec la raquette de l'ordinateur
     if (x + dx > canvas.width - paddleWidth - ballRadius && y > computerPaddleY && y < computerPaddleY + paddleHeight) {
         dx = -dx;
         const hitPosition = (y - computerPaddleY) / paddleHeight;
         dy = -1 * (8 - (hitPosition * 12));
     }
+}
 
+// Gestion des points
+function checkPoint() {
     if (x + dx < 0) {
         computerScore++;
         updateScore();
-        checkWinCondition();
-        resetBall();
-    }
-
-    if (x + dx > canvas.width) {
+        if (computerScore >= maxScore) {
+            endGame(false); // Défaite
+        } else {
+            resetBall();
+        }
+    } else if (x + dx > canvas.width) {
         playerScore++;
         updateScore();
-        checkWinCondition();
-        resetBall();
-    }
-}
-
-// Vérifie si un joueur a gagné
-function checkWinCondition() {
-    if (playerScore >= maxScore) {
-        gameContainer.style.display = "none";
-        winPopup.style.display = "block";
-    } else if (computerScore >= maxScore) {
-        gameContainer.style.display = "none";
-        losePopup.style.display = "block";
+        if (playerScore >= maxScore) {
+            endGame(true); // Victoire
+        } else {
+            resetBall();
+        }
     }
 }
 
@@ -141,10 +145,15 @@ function resetBall() {
     dy = Math.random() * 6 - 3;
 }
 
-// Mise à jour de la position de la balle
-function updateBall() {
-    x += dx;
-    y += dy;
+// Fin du jeu
+function endGame(playerWon) {
+    gameActive = false;
+    gameContainer.style.display = "none";
+    if (playerWon) {
+        winPopup.style.display = "block";
+    } else {
+        losePopup.style.display = "block";
+    }
 }
 
 // Vérification du mot de passe
@@ -170,17 +179,30 @@ function restartGame() {
 
 // Boucle principale du jeu
 function draw() {
+    if (!gameActive) return;
+
     ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     drawBall();
     drawPaddles();
-    collisionDetection();
     computerAI();
     updateBall();
+    checkPoint();
     requestAnimationFrame(draw);
+}
+
+// Mise à jour de la position de la balle
+function updateBall() {
+    x += dx;
+    y += dy;
 }
 
 // Lancement du jeu
 function startGame() {
+    playerScore = 0;
+    computerScore = 0;
+    updateScore();
+    gameActive = true;
+    resetBall();
     draw();
 }
