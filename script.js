@@ -188,10 +188,10 @@ function endGame(playerWon) {
 }
 
 // Vérification du mot de passe
+// Vérification du mot de passe
 function checkPassword() {
     if (passwordInput.value === "TEST") {
-        alert("Mot de passe correct !");
-        restartGame();
+        window.location.href = "pfc.html"; // Redirection vers la nouvelle page
     } else {
         alert("Mot de passe incorrect !");
     }
