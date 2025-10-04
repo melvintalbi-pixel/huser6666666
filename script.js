@@ -13,13 +13,13 @@ const passwordInput = document.getElementById("passwordInput");
 const ballRadius = 10;
 let x = canvas.width / 2;
 let y = canvas.height / 2;
-let dx = 12; // Vitesse constante et rapide
-let dy = 12;
+let dx = 7; // Vitesse équilibrée
+let dy = 7;
 const ballColor = "#e74c3c";
 
-// Raquettes (larges)
-const paddleHeight = 150;
-const paddleWidth = 20;
+// Raquettes
+const paddleHeight = 120;
+const paddleWidth = 15;
 let playerPaddleY = canvas.height / 2 - paddleHeight / 2;
 let computerPaddleY = canvas.height / 2 - paddleHeight / 2;
 
@@ -28,6 +28,7 @@ let playerScore = 0;
 let computerScore = 0;
 const maxScore = 3;
 let gameActive = false;
+let pointCooldown = false;
 
 // Affichage des pop-ups
 function showWeakPopup() {
@@ -80,21 +81,21 @@ function updateScore() {
     document.getElementById("computerScore").textContent = computerScore;
 }
 
-// Logique de l'ordinateur très nulle
+// Logique de l'ordinateur (nul mais pas trop)
 function computerAI() {
     if (!gameActive) return;
 
-    // Le bot est très mauvais et ne suit pas bien la balle
-    if (Math.random() < 0.7) { // 70% de chances de ne pas suivre la balle
+    // Le bot a 50% de chances de rater la balle
+    if (Math.random() < 0.5) {
         // Il bouge aléatoirement
         computerPaddleY += (Math.random() - 0.5) * 10;
     } else {
-        // Parfois il essaie de suivre la balle, mais mal
+        // Sinon il suit la balle avec une latence raisonnable
         const computerPaddleCenter = computerPaddleY + paddleHeight / 2;
-        if (computerPaddleCenter < y - 50) { // Grande latence
-            computerPaddleY += 3;
-        } else if (computerPaddleCenter > y + 50) {
-            computerPaddleY -= 3;
+        if (computerPaddleCenter < y - 20) {
+            computerPaddleY += 4;
+        } else if (computerPaddleCenter > y + 20) {
+            computerPaddleY -= 4;
         }
     }
     computerPaddleY = Math.max(0, Math.min(canvas.height - paddleHeight, computerPaddleY));
@@ -102,6 +103,8 @@ function computerAI() {
 
 // Détection des collisions et gestion des points
 function checkPoint() {
+    if (pointCooldown) return;
+
     // Collision avec les bords haut et bas
     if (y + dy < ballRadius || y + dy > canvas.height - ballRadius) {
         dy = -dy;
@@ -110,32 +113,44 @@ function checkPoint() {
     // Collision avec la raquette du joueur
     if (x + dx < paddleWidth && y > playerPaddleY && y < playerPaddleY + paddleHeight) {
         dx = -dx;
+        // Légère variation aléatoire pour éviter les trajectoires prévisibles
+        dy += (Math.random() - 0.5) * 2;
     }
 
     // Collision avec la raquette de l'ordinateur
     if (x + dx > canvas.width - paddleWidth - ballRadius && y > computerPaddleY && y < computerPaddleY + paddleHeight) {
         dx = -dx;
+        // Légère variation aléatoire
+        dy += (Math.random() - 0.5) * 2;
     }
 
     // Point pour l'ordinateur
     if (x + dx < 0) {
+        pointCooldown = true;
         computerScore++;
         updateScore();
         if (computerScore >= maxScore) {
-            endGame(false);
+            setTimeout(() => endGame(false), 500);
         } else {
-            resetBall();
+            setTimeout(() => {
+                resetBall();
+                pointCooldown = false;
+            }, 500);
         }
     }
 
     // Point pour le joueur
     if (x + dx > canvas.width) {
+        pointCooldown = true;
         playerScore++;
         updateScore();
         if (playerScore >= maxScore) {
-            endGame(true);
+            setTimeout(() => endGame(true), 500);
         } else {
-            resetBall();
+            setTimeout(() => {
+                resetBall();
+                pointCooldown = false;
+            }, 500);
         }
     }
 }
@@ -144,9 +159,9 @@ function checkPoint() {
 function resetBall() {
     x = canvas.width / 2;
     y = canvas.height / 2;
-    // Direction aléatoire mais toujours rapide
-    dx = Math.random() > 0.5 ? 12 : -12;
-    dy = (Math.random() * 8) - 4;
+    // Direction aléatoire mais vitesse constante
+    dx = Math.random() > 0.5 ? 7 : -7;
+    dy = (Math.random() * 5) - 2.5;
 }
 
 // Fin du jeu
@@ -206,6 +221,7 @@ function startGame() {
     computerScore = 0;
     updateScore();
     gameActive = true;
+    pointCooldown = false;
     resetBall();
     draw();
 }
