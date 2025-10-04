@@ -81,20 +81,22 @@ function updateScore() {
     document.getElementById("computerScore").textContent = computerScore;
 }
 
-// Logique de l'ordinateur avec une légère imperfection pour équilibrer les chances
+// Logique de l'ordinateur avec imperfections aléatoires
 function computerAI() {
     if (!gameActive) return;
 
-    // L'ordinateur a une chance de rater la balle
-    if (Math.random() < 0.1) {
-        return; // Ne fait rien (rate la balle)
-    }
-
-    const computerPaddleCenter = computerPaddleY + paddleHeight / 2;
-    if (computerPaddleCenter < y - 15) {
-        computerPaddleY += 3;
-    } else if (computerPaddleCenter > y + 15) {
-        computerPaddleY -= 3;
+    // L'ordinateur a 30% de chances de rater la balle
+    if (Math.random() < 0.3) {
+        // Si l'ordinateur rate, il bouge aléatoirement
+        computerPaddleY += (Math.random() - 0.5) * 10;
+    } else {
+        // Sinon, il suit la balle avec une légère latence
+        const computerPaddleCenter = computerPaddleY + paddleHeight / 2;
+        if (computerPaddleCenter < y - 15) {
+            computerPaddleY += 3;
+        } else if (computerPaddleCenter > y + 15) {
+            computerPaddleY -= 3;
+        }
     }
     computerPaddleY = Math.max(0, Math.min(canvas.height - paddleHeight, computerPaddleY));
 }
@@ -131,19 +133,19 @@ function checkPoint() {
 
     // Collision avec les bords haut et bas
     if (y + dy < ballRadius || y + dy > canvas.height - ballRadius) {
-        dy = -dy * (1 + (Math.random() * 0.3 - 0.15)); // Rebond légèrement aléatoire
+        dy = -dy * (1 + (Math.random() * 0.4 - 0.2)); // Rebond légèrement aléatoire
     }
 
     // Collision avec la raquette du joueur
     if (x + dx < paddleWidth && y > playerPaddleY && y < playerPaddleY + paddleHeight) {
-        dx = -dx * (1 + (Math.random() * 0.3 - 0.15)); // Rebond aléatoire
-        dy = dy * (1 + (Math.random() * 0.3 - 0.15)); // Changement de direction aléatoire
+        dx = -dx * (1 + (Math.random() * 0.4 - 0.2)); // Rebond aléatoire
+        dy = dy * (1 + (Math.random() * 0.4 - 0.2)); // Changement de direction aléatoire
     }
 
     // Collision avec la raquette de l'ordinateur
     if (x + dx > canvas.width - paddleWidth - ballRadius && y > computerPaddleY && y < computerPaddleY + paddleHeight) {
-        dx = -dx * (1 + (Math.random() * 0.3 - 0.15)); // Rebond aléatoire
-        dy = dy * (1 + (Math.random() * 0.3 - 0.15)); // Changement de direction aléatoire
+        dx = -dx * (1 + (Math.random() * 0.4 - 0.2)); // Rebond aléatoire
+        dy = dy * (1 + (Math.random() * 0.4 - 0.2)); // Changement de direction aléatoire
     }
 }
 
