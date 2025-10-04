@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Pop-up de sélection de niveau -->
     <div id="levelSelect" class="popup">
         <h2>Choisis ton niveau</h2>
         <div class="difficulty-buttons">
@@ -16,16 +17,19 @@
         </div>
     </div>
 
+    <!-- Pop-up "GROS FAIBLE" -->
     <div id="weakPopup" class="popup" style="display: none;">
         <h2>GROS FAIBLE</h2>
         <button onclick="closePopup()">OK, je veux le niveau difficile</button>
     </div>
 
+    <!-- Pop-up "FRAGILE" -->
     <div id="fragilePopup" class="popup" style="display: none;">
         <h2>FRAGILE</h2>
         <button onclick="closePopup()">OK, je veux le niveau difficile</button>
     </div>
 
+    <!-- Conteneur du jeu (masqué au début) -->
     <div id="gameContainer" style="display: none;">
         <div class="game-container">
             <h1>PONG HORREUR</h1>
