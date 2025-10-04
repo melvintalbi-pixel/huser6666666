@@ -4,7 +4,10 @@ const ctx = canvas.getContext("2d");
 const levelSelect = document.getElementById("levelSelect");
 const weakPopup = document.getElementById("weakPopup");
 const fragilePopup = document.getElementById("fragilePopup");
+const winPopup = document.getElementById("winPopup");
+const losePopup = document.getElementById("losePopup");
 const gameContainer = document.getElementById("gameContainer");
+const passwordInput = document.getElementById("passwordInput");
 
 // Variables du jeu
 const ballRadius = 10;
@@ -23,6 +26,7 @@ let computerPaddleY = canvas.height / 2 - paddleHeight / 2;
 // Scores
 let playerScore = 0;
 let computerScore = 0;
+const maxScore = 3; // Premier à 3 points gagne
 
 // Affichage des pop-ups
 function showWeakPopup() {
@@ -105,12 +109,27 @@ function collisionDetection() {
 
     if (x + dx < 0) {
         computerScore++;
+        updateScore();
+        checkWinCondition();
         resetBall();
     }
 
     if (x + dx > canvas.width) {
         playerScore++;
+        updateScore();
+        checkWinCondition();
         resetBall();
+    }
+}
+
+// Vérifie si un joueur a gagné
+function checkWinCondition() {
+    if (playerScore >= maxScore) {
+        gameContainer.style.display = "none";
+        winPopup.style.display = "block";
+    } else if (computerScore >= maxScore) {
+        gameContainer.style.display = "none";
+        losePopup.style.display = "block";
     }
 }
 
@@ -128,6 +147,27 @@ function updateBall() {
     y += dy;
 }
 
+// Vérification du mot de passe
+function checkPassword() {
+    if (passwordInput.value === "TEST") {
+        alert("Mot de passe correct !");
+        restartGame();
+    } else {
+        alert("Mot de passe incorrect !");
+    }
+}
+
+// Redémarrer le jeu
+function restartGame() {
+    playerScore = 0;
+    computerScore = 0;
+    updateScore();
+    winPopup.style.display = "none";
+    losePopup.style.display = "none";
+    levelSelect.style.display = "block";
+    passwordInput.value = "";
+}
+
 // Boucle principale du jeu
 function draw() {
     ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
@@ -137,7 +177,6 @@ function draw() {
     collisionDetection();
     computerAI();
     updateBall();
-    updateScore();
     requestAnimationFrame(draw);
 }
 
