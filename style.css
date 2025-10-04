@@ -17,15 +17,20 @@ canvas {
     border: 2px solid white;
     background-color: #000;
     display: block;
-    margin: 0 auto;
+    margin: 20px auto;
 }
 
 .score {
     font-size: 2em;
-    margin: 20px 0;
+    margin: 10px 0;
 }
 
 .instructions {
     font-size: 1.2em;
     margin-bottom: 20px;
+}
+
+h1 {
+    color: white;
+    margin-bottom: 0;
 }
