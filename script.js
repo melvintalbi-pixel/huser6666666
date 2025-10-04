@@ -13,13 +13,13 @@ const passwordInput = document.getElementById("passwordInput");
 const ballRadius = 10;
 let x = canvas.width / 2;
 let y = canvas.height / 2;
-let dx = 4;
-let dy = 4;
+let dx = 3;
+let dy = 3;
 const ballColor = "#e74c3c";
 
-// Raquettes
-const paddleHeight = 80;
-const paddleWidth = 10;
+// Raquettes (plus larges et arrondies)
+const paddleHeight = 120; // Augmentation de la hauteur
+const paddleWidth = 15;    // Augmentation de la largeur
 let playerPaddleY = canvas.height / 2 - paddleHeight / 2;
 let computerPaddleY = canvas.height / 2 - paddleHeight / 2;
 
@@ -68,11 +68,19 @@ function drawBall() {
     ctx.closePath();
 }
 
-// Dessin des raquettes
+// Dessin des raquettes arrondies
 function drawPaddles() {
     ctx.fillStyle = "#e74c3c";
-    ctx.fillRect(0, playerPaddleY, paddleWidth, paddleHeight);
-    ctx.fillRect(canvas.width - paddleWidth, computerPaddleY, paddleWidth, paddleHeight);
+
+    // Raquette du joueur (arrondie)
+    ctx.beginPath();
+    ctx.roundRect(0, playerPaddleY, paddleWidth, paddleHeight, 10);
+    ctx.fill();
+
+    // Raquette de l'ordinateur (arrondie)
+    ctx.beginPath();
+    ctx.roundRect(canvas.width - paddleWidth, computerPaddleY, paddleWidth, paddleHeight, 10);
+    ctx.fill();
 }
 
 // Mise à jour des scores
@@ -81,21 +89,21 @@ function updateScore() {
     document.getElementById("computerScore").textContent = computerScore;
 }
 
-// Logique de l'ordinateur avec imperfections aléatoires
+// Logique de l'ordinateur avec imperfections
 function computerAI() {
     if (!gameActive) return;
 
-    // L'ordinateur a 30% de chances de rater la balle
-    if (Math.random() < 0.3) {
+    // L'ordinateur a 40% de chances de rater la balle
+    if (Math.random() < 0.4) {
         // Si l'ordinateur rate, il bouge aléatoirement
-        computerPaddleY += (Math.random() - 0.5) * 10;
+        computerPaddleY += (Math.random() - 0.5) * 15;
     } else {
         // Sinon, il suit la balle avec une légère latence
         const computerPaddleCenter = computerPaddleY + paddleHeight / 2;
-        if (computerPaddleCenter < y - 15) {
-            computerPaddleY += 3;
-        } else if (computerPaddleCenter > y + 15) {
-            computerPaddleY -= 3;
+        if (computerPaddleCenter < y - 20) {
+            computerPaddleY += 4;
+        } else if (computerPaddleCenter > y + 20) {
+            computerPaddleY -= 4;
         }
     }
     computerPaddleY = Math.max(0, Math.min(canvas.height - paddleHeight, computerPaddleY));
@@ -133,19 +141,19 @@ function checkPoint() {
 
     // Collision avec les bords haut et bas
     if (y + dy < ballRadius || y + dy > canvas.height - ballRadius) {
-        dy = -dy * (1 + (Math.random() * 0.4 - 0.2)); // Rebond légèrement aléatoire
+        dy = -dy * (1 + (Math.random() * 0.5 - 0.25)); // Rebond aléatoire
     }
 
     // Collision avec la raquette du joueur
-    if (x + dx < paddleWidth && y > playerPaddleY && y < playerPaddleY + paddleHeight) {
-        dx = -dx * (1 + (Math.random() * 0.4 - 0.2)); // Rebond aléatoire
-        dy = dy * (1 + (Math.random() * 0.4 - 0.2)); // Changement de direction aléatoire
+    if (x + dx < paddleWidth + ballRadius && y > playerPaddleY && y < playerPaddleY + paddleHeight) {
+        dx = -dx * (1 + (Math.random() * 0.5 - 0.25)); // Rebond aléatoire
+        dy = dy * (1 + (Math.random() * 0.5 - 0.25)); // Changement de direction aléatoire
     }
 
     // Collision avec la raquette de l'ordinateur
     if (x + dx > canvas.width - paddleWidth - ballRadius && y > computerPaddleY && y < computerPaddleY + paddleHeight) {
-        dx = -dx * (1 + (Math.random() * 0.4 - 0.2)); // Rebond aléatoire
-        dy = dy * (1 + (Math.random() * 0.4 - 0.2)); // Changement de direction aléatoire
+        dx = -dx * (1 + (Math.random() * 0.5 - 0.25)); // Rebond aléatoire
+        dy = dy * (1 + (Math.random() * 0.5 - 0.25)); // Changement de direction aléatoire
     }
 }
 
@@ -155,7 +163,7 @@ function resetBall() {
     y = canvas.height / 2;
 
     // Direction aléatoire pour équilibrer les chances
-    dx = Math.random() > 0.5 ? 4 : -4;
+    dx = Math.random() > 0.5 ? 3 : -3;
     dy = Math.random() * 4 - 2;
 }
 
