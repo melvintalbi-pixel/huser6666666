@@ -9,16 +9,12 @@ const losePopup = document.getElementById("losePopup");
 const gameContainer = document.getElementById("gameContainer");
 const passwordInput = document.getElementById("passwordInput");
 
-// Redimensionnement du canvas pour une zone de jeu plus grande
-canvas.width = 1000;
-canvas.height = 600;
-
 // Variables du jeu
 const ballRadius = 10;
 let x = canvas.width / 2;
 let y = canvas.height / 2;
-let dx = 9; // Vitesse initiale ultra-rapide
-let dy = 9;
+let dx = 12; // Vitesse initiale ultra-rapide
+let dy = 12;
 const ballColor = "#e74c3c";
 
 // Raquettes (très larges et ultra-arrondies)
@@ -94,23 +90,23 @@ function updateScore() {
     document.getElementById("computerScore").textContent = computerScore;
 }
 
-// Logique de l'ordinateur avec tremblements
+// Logique de l'ordinateur avec beaucoup d'erreurs
 function computerAI() {
     if (!gameActive) return;
 
-    // L'ordinateur tremble comme une feuille
-    computerPaddleY += (Math.random() - 0.5) * 20;
-
-    // Mais essaie quand même de suivre la balle (parfois)
-    if (Math.random() > 0.4) {
+    // L'ordinateur a 60% de chances de rater la balle
+    if (Math.random() < 0.6) {
+        // Si l'ordinateur rate, il bouge aléatoirement
+        computerPaddleY += (Math.random() - 0.5) * 30; // Plus de tremblements
+    } else {
+        // Sinon, il suit la balle avec une grande latence
         const computerPaddleCenter = computerPaddleY + paddleHeight / 2;
-        if (computerPaddleCenter < y - 30) {
+        if (computerPaddleCenter < y - 40) { // Plus de latence
             computerPaddleY += 7;
-        } else if (computerPaddleCenter > y + 30) {
+        } else if (computerPaddleCenter > y + 40) {
             computerPaddleY -= 7;
         }
     }
-
     computerPaddleY = Math.max(0, Math.min(canvas.height - paddleHeight, computerPaddleY));
 }
 
@@ -146,23 +142,23 @@ function checkPoint() {
 
     // Collision avec les bords haut et bas (rebonds ultra-aléatoires)
     if (y + dy < ballRadius || y + dy > canvas.height - ballRadius) {
-        dy = -dy * (1 + (Math.random() * 1.5 - 0.75)); // Rebond ultra-aléatoire
+        dy = -dy * (1 + (Math.random() * 1.5 - 0.75));
     }
 
     // Collision avec la raquette du joueur (rebonds ultra-aléatoires)
     if (x + dx < paddleWidth + ballRadius && y > playerPaddleY && y < playerPaddleY + paddleHeight) {
-        dx = -dx * (1 + (Math.random() * 1.5 - 0.75)); // Rebond ultra-aléatoire
-        dy = dy * (1 + (Math.random() * 1.5 - 0.75)); // Changement de direction ultra-aléatoire
-        dx *= 1.05; // Légère accélération après rebond
-        dy *= 1.05;
+        dx = -dx * (1 + (Math.random() * 1.5 - 0.75));
+        dy = dy * (1 + (Math.random() * 1.5 - 0.75));
+        dx *= 1.1; // Accélération après rebond
+        dy *= 1.1;
     }
 
     // Collision avec la raquette de l'ordinateur (rebonds ultra-aléatoires)
     if (x + dx > canvas.width - paddleWidth - ballRadius && y > computerPaddleY && y < computerPaddleY + paddleHeight) {
-        dx = -dx * (1 + (Math.random() * 1.5 - 0.75)); // Rebond ultra-aléatoire
-        dy = dy * (1 + (Math.random() * 1.5 - 0.75)); // Changement de direction ultra-aléatoire
-        dx *= 1.05; // Légère accélération après rebond
-        dy *= 1.05;
+        dx = -dx * (1 + (Math.random() * 1.5 - 0.75));
+        dy = dy * (1 + (Math.random() * 1.5 - 0.75));
+        dx *= 1.1; // Accélération après rebond
+        dy *= 1.1;
     }
 }
 
@@ -172,8 +168,8 @@ function resetBall() {
     y = canvas.height / 2;
 
     // Direction ultra-aléatoire pour équilibrer les chances
-    dx = (Math.random() > 0.5 ? 1 : -1) * (9 + Math.random() * 3);
-    dy = (Math.random() * 9) - 4.5;
+    dx = (Math.random() > 0.5 ? 1 : -1) * (12 + Math.random() * 4); // Vitesse initiale entre 12 et 16
+    dy = (Math.random() * 10) - 5;
 }
 
 // Fin du jeu
@@ -188,10 +184,9 @@ function endGame(playerWon) {
 }
 
 // Vérification du mot de passe
-// Vérification du mot de passe
 function checkPassword() {
     if (passwordInput.value === "TEST") {
-        window.location.href = "pfc.html"; // Redirection vers la nouvelle page
+        window.location.href = "pfc.html";
     } else {
         alert("Mot de passe incorrect !");
     }
