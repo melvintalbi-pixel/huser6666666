@@ -81,9 +81,15 @@ function updateScore() {
     document.getElementById("computerScore").textContent = computerScore;
 }
 
-// Logique de l'ordinateur
+// Logique de l'ordinateur avec une légère imperfection pour équilibrer les chances
 function computerAI() {
     if (!gameActive) return;
+
+    // L'ordinateur a une chance de rater la balle
+    if (Math.random() < 0.1) {
+        return; // Ne fait rien (rate la balle)
+    }
+
     const computerPaddleCenter = computerPaddleY + paddleHeight / 2;
     if (computerPaddleCenter < y - 15) {
         computerPaddleY += 3;
@@ -125,25 +131,29 @@ function checkPoint() {
 
     // Collision avec les bords haut et bas
     if (y + dy < ballRadius || y + dy > canvas.height - ballRadius) {
-        dy = -dy;
+        dy = -dy * (1 + (Math.random() * 0.3 - 0.15)); // Rebond légèrement aléatoire
     }
 
     // Collision avec la raquette du joueur
     if (x + dx < paddleWidth && y > playerPaddleY && y < playerPaddleY + paddleHeight) {
-        dx = -dx;
+        dx = -dx * (1 + (Math.random() * 0.3 - 0.15)); // Rebond aléatoire
+        dy = dy * (1 + (Math.random() * 0.3 - 0.15)); // Changement de direction aléatoire
     }
 
     // Collision avec la raquette de l'ordinateur
     if (x + dx > canvas.width - paddleWidth - ballRadius && y > computerPaddleY && y < computerPaddleY + paddleHeight) {
-        dx = -dx;
+        dx = -dx * (1 + (Math.random() * 0.3 - 0.15)); // Rebond aléatoire
+        dy = dy * (1 + (Math.random() * 0.3 - 0.15)); // Changement de direction aléatoire
     }
 }
 
-// Réinitialisation de la balle
+// Réinitialisation de la balle avec une direction aléatoire
 function resetBall() {
     x = canvas.width / 2;
     y = canvas.height / 2;
-    dx = -dx > 0 ? 4 : -4;
+
+    // Direction aléatoire pour équilibrer les chances
+    dx = Math.random() > 0.5 ? 4 : -4;
     dy = Math.random() * 4 - 2;
 }
 
