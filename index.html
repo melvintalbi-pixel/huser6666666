@@ -29,6 +29,20 @@
         <button onclick="closePopup()">OK, je veux le niveau difficile</button>
     </div>
 
+    <!-- Pop-up "Victoire" -->
+    <div id="winPopup" class="popup" style="display: none;">
+        <h2>BRAVO</h2>
+        <p>Merci d'entrer le mot de passe :</p>
+        <input type="text" id="passwordInput" placeholder="Mot de passe">
+        <button onclick="checkPassword()">Valider</button>
+    </div>
+
+    <!-- Pop-up "Défaite" -->
+    <div id="losePopup" class="popup" style="display: none;">
+        <h2>Petite merguez va, je t'éteins avec le bout de mon zgeg</h2>
+        <button onclick="restartGame()">Rejouer</button>
+    </div>
+
     <!-- Conteneur du jeu (masqué au début) -->
     <div id="gameContainer" style="display: none;">
         <div class="game-container">
@@ -38,7 +52,8 @@
                 <span id="playerScore">0</span> - <span id="computerScore">0</span>
             </div>
             <div class="instructions">
-                Utilisez la <strong>souris</strong> ou votre <strong>doigt</strong> pour bouger votre raquette.
+                Utilisez la <strong>souris</strong> ou votre <strong>doigt</strong> pour bouger votre raquette.<br>
+                Premier à 3 points gagne !
             </div>
         </div>
     </div>
