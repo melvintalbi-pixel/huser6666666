@@ -13,7 +13,7 @@ const passwordInput = document.getElementById("passwordInput");
 const ballRadius = 10;
 let x = canvas.width / 2;
 let y = canvas.height / 2;
-let dx = 3; // Vitesse initiale réduite
+let dx = 3;
 let dy = 3;
 const ballColor = "#e74c3c";
 
@@ -28,6 +28,7 @@ let playerScore = 0;
 let computerScore = 0;
 const maxScore = 3;
 let gameActive = false;
+let pointScored = false; // Pour éviter les multiples points
 
 // Affichage des pop-ups
 function showWeakPopup() {
@@ -80,14 +81,12 @@ function updateScore() {
     document.getElementById("computerScore").textContent = computerScore;
 }
 
-// Logique de l'ordinateur (niveau difficile mais équilibré)
+// Logique de l'ordinateur
 function computerAI() {
     if (!gameActive) return;
     const computerPaddleCenter = computerPaddleY + paddleHeight / 2;
-
-    // L'ordinateur suit la balle avec une légère latence pour rendre le jeu jouable
     if (computerPaddleCenter < y - 20) {
-        computerPaddleY += 3; // Vitesse réduite
+        computerPaddleY += 3;
     } else if (computerPaddleCenter > y + 20) {
         computerPaddleY -= 3;
     }
@@ -96,7 +95,7 @@ function computerAI() {
 
 // Détection des collisions
 function collisionDetection() {
-    if (!gameActive) return;
+    if (!gameActive || pointScored) return;
 
     // Collision avec les bords haut et bas
     if (y + dy < ballRadius || y + dy > canvas.height - ballRadius) {
@@ -105,9 +104,9 @@ function collisionDetection() {
 
     // Collision avec la raquette du joueur
     if (x + dx < paddleWidth && y > playerPaddleY && y < playerPaddleY + paddleHeight) {
-        dx = -dx * 1.05; // Légère accélération
+        dx = -dx * 1.05;
         const hitPosition = (y - playerPaddleY) / paddleHeight;
-        dy = (hitPosition - 0.5) * 8; // Rebond plus naturel
+        dy = (hitPosition - 0.5) * 8;
     }
 
     // Collision avec la raquette de l'ordinateur
@@ -120,21 +119,31 @@ function collisionDetection() {
 
 // Gestion des points
 function checkPoint() {
+    if (pointScored) return;
+
     if (x + dx < 0) {
+        pointScored = true;
         computerScore++;
         updateScore();
         if (computerScore >= maxScore) {
-            endGame(false);
+            setTimeout(() => endGame(false), 500); // Délai pour éviter les bugs
         } else {
-            resetBall();
+            setTimeout(() => {
+                resetBall();
+                pointScored = false;
+            }, 500);
         }
     } else if (x + dx > canvas.width) {
+        pointScored = true;
         playerScore++;
         updateScore();
         if (playerScore >= maxScore) {
-            endGame(true);
+            setTimeout(() => endGame(true), 500);
         } else {
-            resetBall();
+            setTimeout(() => {
+                resetBall();
+                pointScored = false;
+            }, 500);
         }
     }
 }
@@ -143,7 +152,7 @@ function checkPoint() {
 function resetBall() {
     x = canvas.width / 2;
     y = canvas.height / 2;
-    dx = -dx > 0 ? 3 : -3; // Réinitialisation de la vitesse
+    dx = -dx > 0 ? 3 : -3;
     dy = Math.random() * 3 - 1.5;
 }
 
@@ -206,6 +215,7 @@ function startGame() {
     computerScore = 0;
     updateScore();
     gameActive = true;
+    pointScored = false;
     resetBall();
     draw();
 }
