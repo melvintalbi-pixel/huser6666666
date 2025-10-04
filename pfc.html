@@ -1,1 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pierre-Feuille-Ciseaux</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+    <style>
+        .choices {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .choice {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #e74c3c;
+            color: black;
+            font-size: 2em;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.7);
+        }
+        .result {
+            font-size: 1.5em;
+            margin: 20px 0;
+            min-height: 50px;
+        }
+        .score {
+            font-size: 1.5em;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="popup" id="welcomePopup">
+        <h2>Tu pensais que tu te serais débarrassé de moi comme ça ?</h2>
+        <button onclick="startGame()">Jouer</button>
+    </div>
+
+    <div id="gameContainer" style="display: none;">
+        <div class="game-container">
+            <h1>PIERRE-FEUILLE-CISEAUX</h1>
+            <div class="score">
+                Toi: <span id="playerScore">0</span> - Moi: <span id="computerScore">0</span>
+            </div>
+            <div class="result" id="result"></div>
+            <div class="choices">
+                <div class="choice" onclick="play('pierre')">🪨</div>
+                <div class="choice" onclick="play('feuille')">📄</div>
+                <div class="choice" onclick="play('ciseaux')">✂️</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="endPopup" class="popup" style="display: none;">
+        <h2 id="endMessage"></h2>
+        <button onclick="restartGame()">Rejouer</button>
+    </div>
+
+    <script>
+        let playerScore = 0;
+        let computerScore = 0;
+        const maxScore = 3;
+        const choices = ['pierre', 'feuille', 'ciseaux'];
+
+        function startGame() {
+            document.getElementById('welcomePopup').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'block';
+        }
+
+        function play(playerChoice) {
+            const computerChoice = choices[Math.floor(Math.random() * 3)];
+            const resultElement = document.getElementById('result');
+            let result = '';
+
+            if (playerChoice === computerChoice) {
+                result = "Égalité ! Nous avons choisi la même chose.";
+            } else if (
+                (playerChoice === 'pierre' && computerChoice === 'ciseaux') ||
+                (playerChoice === 'feuille' && computerChoice === 'pierre') ||
+                (playerChoice === 'ciseaux' && computerChoice === 'feuille')
+            ) {
+                result = `Tu gagnes ! ${playerChoice} bat ${computerChoice}.`;
+                playerScore++;
+            } else {
+                result = `Je gagne ! ${computerChoice} bat ${playerChoice}.`;
+                computerScore++;
+            }
+
+            document.getElementById('playerScore').textContent = playerScore;
+            document.getElementById('computerScore').textContent = computerScore;
+            resultElement.textContent = `Toi: ${playerChoice} vs Moi: ${computerChoice}. ${result}`;
+
+            if (playerScore >= maxScore) {
+                setTimeout(() => endGame(true), 1000);
+            } else if (computerScore >= maxScore) {
+                setTimeout(() => endGame(false), 1000);
+            }
+        }
+
+        function endGame(playerWon) {
+            document.getElementById('gameContainer').style.display = 'none';
+            const endPopup = document.getElementById('endPopup');
+            const endMessage = document.getElementById('endMessage');
+
+            if (playerWon) {
+                endMessage.textContent = "Bravo ! Tu as gagné... Cette fois.";
+            } else {
+                endMessage.textContent = "HAHA ! Je t'ai écrasé comme un insecte !";
+            }
+
+            endPopup.style.display = 'block';
+        }
+
+        function restartGame() {
+            playerScore = 0;
+            computerScore = 0;
+            document.getElementById('playerScore').textContent = playerScore;
+            document.getElementById('computerScore').textContent = computerScore;
+            document.getElementById('result').textContent = '';
+            document.getElementById('endPopup').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
 
