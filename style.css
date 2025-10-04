@@ -36,3 +36,10 @@ h1 {
     color: white;
     margin-bottom: 0;
 }
+canvas {
+    border: 2px solid white;
+    background-color: #000;
+    display: block;
+    margin: 20px auto;
+    touch-action: none; /* Désactive le défilement tactile par défaut */
+}
