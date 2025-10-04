@@ -13,13 +13,14 @@ const passwordInput = document.getElementById("passwordInput");
 const ballRadius = 10;
 let x = canvas.width / 2;
 let y = canvas.height / 2;
-let dx = 3;
-let dy = 3;
+let dx = 6; // Vitesse initiale augmentée
+let dy = 6;
 const ballColor = "#e74c3c";
 
-// Raquettes (plus larges et arrondies)
-const paddleHeight = 120; // Augmentation de la hauteur
-const paddleWidth = 15;    // Augmentation de la largeur
+// Raquettes (très larges et très arrondies)
+const paddleHeight = 150; // Raquettes très hautes
+const paddleWidth = 20;    // Raquettes plus épaisses
+const paddleRadius = 20;   // Arrondi très prononcé
 let playerPaddleY = canvas.height / 2 - paddleHeight / 2;
 let computerPaddleY = canvas.height / 2 - paddleHeight / 2;
 
@@ -68,18 +69,18 @@ function drawBall() {
     ctx.closePath();
 }
 
-// Dessin des raquettes arrondies
+// Dessin des raquettes très arrondies
 function drawPaddles() {
     ctx.fillStyle = "#e74c3c";
 
-    // Raquette du joueur (arrondie)
+    // Raquette du joueur (très arrondie)
     ctx.beginPath();
-    ctx.roundRect(0, playerPaddleY, paddleWidth, paddleHeight, 10);
+    ctx.roundRect(0, playerPaddleY, paddleWidth, paddleHeight, paddleRadius);
     ctx.fill();
 
-    // Raquette de l'ordinateur (arrondie)
+    // Raquette de l'ordinateur (très arrondie)
     ctx.beginPath();
-    ctx.roundRect(canvas.width - paddleWidth, computerPaddleY, paddleWidth, paddleHeight, 10);
+    ctx.roundRect(canvas.width - paddleWidth, computerPaddleY, paddleWidth, paddleHeight, paddleRadius);
     ctx.fill();
 }
 
@@ -89,21 +90,21 @@ function updateScore() {
     document.getElementById("computerScore").textContent = computerScore;
 }
 
-// Logique de l'ordinateur avec imperfections
+// Logique de l'ordinateur avec imperfections majeures
 function computerAI() {
     if (!gameActive) return;
 
-    // L'ordinateur a 40% de chances de rater la balle
-    if (Math.random() < 0.4) {
+    // L'ordinateur a 50% de chances de rater la balle
+    if (Math.random() < 0.5) {
         // Si l'ordinateur rate, il bouge aléatoirement
-        computerPaddleY += (Math.random() - 0.5) * 15;
+        computerPaddleY += (Math.random() - 0.5) * 20;
     } else {
         // Sinon, il suit la balle avec une légère latence
         const computerPaddleCenter = computerPaddleY + paddleHeight / 2;
-        if (computerPaddleCenter < y - 20) {
-            computerPaddleY += 4;
-        } else if (computerPaddleCenter > y + 20) {
-            computerPaddleY -= 4;
+        if (computerPaddleCenter < y - 25) {
+            computerPaddleY += 5;
+        } else if (computerPaddleCenter > y + 25) {
+            computerPaddleY -= 5;
         }
     }
     computerPaddleY = Math.max(0, Math.min(canvas.height - paddleHeight, computerPaddleY));
@@ -141,19 +142,23 @@ function checkPoint() {
 
     // Collision avec les bords haut et bas
     if (y + dy < ballRadius || y + dy > canvas.height - ballRadius) {
-        dy = -dy * (1 + (Math.random() * 0.5 - 0.25)); // Rebond aléatoire
+        dy = -dy * (1 + (Math.random() * 0.6 - 0.3)); // Rebond très aléatoire
     }
 
     // Collision avec la raquette du joueur
     if (x + dx < paddleWidth + ballRadius && y > playerPaddleY && y < playerPaddleY + paddleHeight) {
-        dx = -dx * (1 + (Math.random() * 0.5 - 0.25)); // Rebond aléatoire
-        dy = dy * (1 + (Math.random() * 0.5 - 0.25)); // Changement de direction aléatoire
+        dx = -dx * (1 + (Math.random() * 0.6 - 0.3)); // Rebond très aléatoire
+        dy = dy * (1 + (Math.random() * 0.6 - 0.3)); // Changement de direction très aléatoire
+        dx *= 1.05; // Légère accélération après rebond
+        dy *= 1.05;
     }
 
     // Collision avec la raquette de l'ordinateur
     if (x + dx > canvas.width - paddleWidth - ballRadius && y > computerPaddleY && y < computerPaddleY + paddleHeight) {
-        dx = -dx * (1 + (Math.random() * 0.5 - 0.25)); // Rebond aléatoire
-        dy = dy * (1 + (Math.random() * 0.5 - 0.25)); // Changement de direction aléatoire
+        dx = -dx * (1 + (Math.random() * 0.6 - 0.3)); // Rebond très aléatoire
+        dy = dy * (1 + (Math.random() * 0.6 - 0.3)); // Changement de direction très aléatoire
+        dx *= 1.05; // Légère accélération après rebond
+        dy *= 1.05;
     }
 }
 
@@ -163,8 +168,8 @@ function resetBall() {
     y = canvas.height / 2;
 
     // Direction aléatoire pour équilibrer les chances
-    dx = Math.random() > 0.5 ? 3 : -3;
-    dy = Math.random() * 4 - 2;
+    dx = (Math.random() > 0.5 ? 1 : -1) * (5 + Math.random() * 2);
+    dy = (Math.random() * 6) - 3;
 }
 
 // Fin du jeu
