@@ -12,6 +12,41 @@ body {
     overflow: hidden;
 }
 
+.popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.9);
+    color: #e74c3c;
+    padding: 30px;
+    border: 2px solid #e74c3c;
+    border-radius: 10px;
+    text-align: center;
+    z-index: 100;
+    font-size: 2em;
+    box-shadow: 0 0 20px rgba(231, 76, 60, 0.7);
+}
+
+.popup h2 {
+    margin-top: 0;
+}
+
+.popup button {
+    margin: 10px;
+    padding: 10px 20px;
+    background-color: #e74c3c;
+    color: #000;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Creepster', cursive;
+}
+
+.difficulty-buttons {
+    margin-top: 20px;
+}
+
 .game-container {
     text-align: center;
     background-color: rgba(0, 0, 0, 0.7);
@@ -49,58 +84,4 @@ canvas {
     color: #e74c3c;
     margin-bottom: 20px;
     text-shadow: 0 0 5px #8e44ad;
-}
-
-.difficulty-buttons {
-    margin-top: 20px;
-}
-
-.difficulty-buttons button {
-    margin: 0 10px;
-    padding: 10px 20px;
-    font-size: 1.2em;
-    background-color: #333;
-    color: #e74c3c;
-    border: 2px solid #e74c3c;
-    border-radius: 5px;
-    cursor: pointer;
-    font-family: 'Creepster', cursive;
-    transition: all 0.3s;
-}
-
-.difficulty-buttons button:hover {
-    background-color: #e74c3c;
-    color: #000;
-}
-
-.popup {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: rgba(0, 0, 0, 0.9);
-    color: #e74c3c;
-    padding: 30px;
-    border: 2px solid #e74c3c;
-    border-radius: 10px;
-    text-align: center;
-    z-index: 100;
-    font-size: 2em;
-    box-shadow: 0 0 20px rgba(231, 76, 60, 0.7);
-}
-
-.popup h2 {
-    margin-top: 0;
-}
-
-.popup button {
-    margin-top: 20px;
-    padding: 10px 20px;
-    background-color: #e74c3c;
-    color: #000;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-family: 'Creepster', cursive;
 }
