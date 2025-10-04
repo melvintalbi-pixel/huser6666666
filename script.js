@@ -13,8 +13,8 @@ const passwordInput = document.getElementById("passwordInput");
 const ballRadius = 10;
 let x = canvas.width / 2;
 let y = canvas.height / 2;
-let dx = 3;
-let dy = 3;
+let dx = 4;
+let dy = 4;
 const ballColor = "#e74c3c";
 
 // Raquettes
@@ -28,7 +28,7 @@ let playerScore = 0;
 let computerScore = 0;
 const maxScore = 3;
 let gameActive = false;
-let pointScored = false; // Pour éviter les multiples points
+let pointCooldown = false;
 
 // Affichage des pop-ups
 function showWeakPopup() {
@@ -85,17 +85,43 @@ function updateScore() {
 function computerAI() {
     if (!gameActive) return;
     const computerPaddleCenter = computerPaddleY + paddleHeight / 2;
-    if (computerPaddleCenter < y - 20) {
+    if (computerPaddleCenter < y - 15) {
         computerPaddleY += 3;
-    } else if (computerPaddleCenter > y + 20) {
+    } else if (computerPaddleCenter > y + 15) {
         computerPaddleY -= 3;
     }
     computerPaddleY = Math.max(0, Math.min(canvas.height - paddleHeight, computerPaddleY));
 }
 
-// Détection des collisions
-function collisionDetection() {
-    if (!gameActive || pointScored) return;
+// Détection des collisions et gestion des points
+function checkPoint() {
+    if (pointCooldown) return;
+
+    if (x + dx < 0) {
+        pointCooldown = true;
+        computerScore++;
+        updateScore();
+        if (computerScore >= maxScore) {
+            setTimeout(() => endGame(false), 500);
+        } else {
+            setTimeout(() => {
+                resetBall();
+                pointCooldown = false;
+            }, 500);
+        }
+    } else if (x + dx > canvas.width) {
+        pointCooldown = true;
+        playerScore++;
+        updateScore();
+        if (playerScore >= maxScore) {
+            setTimeout(() => endGame(true), 500);
+        } else {
+            setTimeout(() => {
+                resetBall();
+                pointCooldown = false;
+            }, 500);
+        }
+    }
 
     // Collision avec les bords haut et bas
     if (y + dy < ballRadius || y + dy > canvas.height - ballRadius) {
@@ -104,47 +130,12 @@ function collisionDetection() {
 
     // Collision avec la raquette du joueur
     if (x + dx < paddleWidth && y > playerPaddleY && y < playerPaddleY + paddleHeight) {
-        dx = -dx * 1.05;
-        const hitPosition = (y - playerPaddleY) / paddleHeight;
-        dy = (hitPosition - 0.5) * 8;
+        dx = -dx;
     }
 
     // Collision avec la raquette de l'ordinateur
     if (x + dx > canvas.width - paddleWidth - ballRadius && y > computerPaddleY && y < computerPaddleY + paddleHeight) {
-        dx = -dx * 1.05;
-        const hitPosition = (y - computerPaddleY) / paddleHeight;
-        dy = (hitPosition - 0.5) * 8;
-    }
-}
-
-// Gestion des points
-function checkPoint() {
-    if (pointScored) return;
-
-    if (x + dx < 0) {
-        pointScored = true;
-        computerScore++;
-        updateScore();
-        if (computerScore >= maxScore) {
-            setTimeout(() => endGame(false), 500); // Délai pour éviter les bugs
-        } else {
-            setTimeout(() => {
-                resetBall();
-                pointScored = false;
-            }, 500);
-        }
-    } else if (x + dx > canvas.width) {
-        pointScored = true;
-        playerScore++;
-        updateScore();
-        if (playerScore >= maxScore) {
-            setTimeout(() => endGame(true), 500);
-        } else {
-            setTimeout(() => {
-                resetBall();
-                pointScored = false;
-            }, 500);
-        }
+        dx = -dx;
     }
 }
 
@@ -152,8 +143,8 @@ function checkPoint() {
 function resetBall() {
     x = canvas.width / 2;
     y = canvas.height / 2;
-    dx = -dx > 0 ? 3 : -3;
-    dy = Math.random() * 3 - 1.5;
+    dx = -dx > 0 ? 4 : -4;
+    dy = Math.random() * 4 - 2;
 }
 
 // Fin du jeu
@@ -196,7 +187,6 @@ function draw() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     drawBall();
     drawPaddles();
-    collisionDetection();
     computerAI();
     updateBall();
     checkPoint();
@@ -215,7 +205,7 @@ function startGame() {
     computerScore = 0;
     updateScore();
     gameActive = true;
-    pointScored = false;
+    pointCooldown = false;
     resetBall();
     draw();
 }
