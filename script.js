@@ -13,8 +13,8 @@ const passwordInput = document.getElementById("passwordInput");
 const ballRadius = 10;
 let x = canvas.width / 2;
 let y = canvas.height / 2;
-let dx = 5;
-let dy = 5;
+let dx = 3; // Vitesse initiale réduite
+let dy = 3;
 const ballColor = "#e74c3c";
 
 // Raquettes
@@ -26,8 +26,8 @@ let computerPaddleY = canvas.height / 2 - paddleHeight / 2;
 // Scores
 let playerScore = 0;
 let computerScore = 0;
-const maxScore = 3; // Premier à 3 points gagne
-let gameActive = false; // Pour contrôler l'état du jeu
+const maxScore = 3;
+let gameActive = false;
 
 // Affichage des pop-ups
 function showWeakPopup() {
@@ -80,14 +80,16 @@ function updateScore() {
     document.getElementById("computerScore").textContent = computerScore;
 }
 
-// Logique de l'ordinateur (niveau difficile)
+// Logique de l'ordinateur (niveau difficile mais équilibré)
 function computerAI() {
     if (!gameActive) return;
     const computerPaddleCenter = computerPaddleY + paddleHeight / 2;
-    if (computerPaddleCenter < y - 10) {
-        computerPaddleY += 5;
-    } else if (computerPaddleCenter > y + 10) {
-        computerPaddleY -= 5;
+
+    // L'ordinateur suit la balle avec une légère latence pour rendre le jeu jouable
+    if (computerPaddleCenter < y - 20) {
+        computerPaddleY += 3; // Vitesse réduite
+    } else if (computerPaddleCenter > y + 20) {
+        computerPaddleY -= 3;
     }
     computerPaddleY = Math.max(0, Math.min(canvas.height - paddleHeight, computerPaddleY));
 }
@@ -103,16 +105,16 @@ function collisionDetection() {
 
     // Collision avec la raquette du joueur
     if (x + dx < paddleWidth && y > playerPaddleY && y < playerPaddleY + paddleHeight) {
-        dx = -dx;
+        dx = -dx * 1.05; // Légère accélération
         const hitPosition = (y - playerPaddleY) / paddleHeight;
-        dy = -1 * (8 - (hitPosition * 12));
+        dy = (hitPosition - 0.5) * 8; // Rebond plus naturel
     }
 
     // Collision avec la raquette de l'ordinateur
     if (x + dx > canvas.width - paddleWidth - ballRadius && y > computerPaddleY && y < computerPaddleY + paddleHeight) {
-        dx = -dx;
+        dx = -dx * 1.05;
         const hitPosition = (y - computerPaddleY) / paddleHeight;
-        dy = -1 * (8 - (hitPosition * 12));
+        dy = (hitPosition - 0.5) * 8;
     }
 }
 
@@ -122,7 +124,7 @@ function checkPoint() {
         computerScore++;
         updateScore();
         if (computerScore >= maxScore) {
-            endGame(false); // Défaite
+            endGame(false);
         } else {
             resetBall();
         }
@@ -130,7 +132,7 @@ function checkPoint() {
         playerScore++;
         updateScore();
         if (playerScore >= maxScore) {
-            endGame(true); // Victoire
+            endGame(true);
         } else {
             resetBall();
         }
@@ -141,8 +143,8 @@ function checkPoint() {
 function resetBall() {
     x = canvas.width / 2;
     y = canvas.height / 2;
-    dx = -dx * (1 + (Math.random() * 0.3 - 0.15));
-    dy = Math.random() * 6 - 3;
+    dx = -dx > 0 ? 3 : -3; // Réinitialisation de la vitesse
+    dy = Math.random() * 3 - 1.5;
 }
 
 // Fin du jeu
@@ -185,6 +187,7 @@ function draw() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     drawBall();
     drawPaddles();
+    collisionDetection();
     computerAI();
     updateBall();
     checkPoint();
