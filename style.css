@@ -15,7 +15,7 @@ body {
 
 canvas {
     border: 2px solid white;
-    background-color: #000;
+    background-color: #000; /* Fond noir pour le canvas */
     display: block;
     margin: 20px auto;
 }
@@ -23,11 +23,13 @@ canvas {
 .score {
     font-size: 2em;
     margin: 10px 0;
+    color: white; /* Texte blanc pour le score */
 }
 
 .instructions {
     font-size: 1.2em;
     margin-bottom: 20px;
+    color: white; /* Texte blanc pour les instructions */
 }
 
 h1 {
