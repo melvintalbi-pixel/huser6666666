@@ -3,104 +3,107 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Labyrinthe — Tombeau</title>
+<title>Labyrinthe — Hardcore 50×50</title>
 <style>
   :root{
-    --bg:#070405;
+    --bg:#050304;
     --wall:#0b0705;
     --floor:#2b2218;
-    --player:#d4af37;
+    --player:#f6e6b2;
+    --trap:#7b1420;
+    --door:#4a2f10;
+    --exit:#0b6b33;
+    --text:#efe6c9;
     --accent:#b98a26;
-    --text:#f6eeda;
   }
   *{box-sizing:border-box}
-  html,body{height:100%;margin:0;background:linear-gradient(180deg,#030305,var(--bg));font-family:Inter,system-ui,Arial;color:var(--text)}
-  .wrap{max-width:1100px;margin:18px auto;padding:12px}
-  header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#020202,var(--bg));font-family:Inter,system-ui,Arial;color:var(--text)}
+  .wrap{max-width:1200px;margin:18px auto;padding:10px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px}
   h1{margin:0;font-size:20px;color:var(--accent)}
-  p.lead{margin:8px 0 18px;color:#d6c8a3;font-size:14px}
-
-  .game-shell{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  p.lead{margin:6px 0 0 0;color:#d6c8a3;font-size:13px}
 
   /* board */
-  .board {
-    --cell:38px;
-    width: calc(var(--cell) * 13 + 12px);
-    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.12));
-    padding:8px;
-    border-radius:12px;
-    border:1px solid rgba(255,220,140,0.04);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  .container { display:flex; gap:14px; padding:10px; align-items:flex-start; }
+  .board-wrap { overflow:auto; border-radius:10px; background:rgba(0,0,0,0.35); padding:8px; border:1px solid rgba(255,255,255,0.03); }
+  .grid {
+    display:grid;
+    grid-template-columns: repeat(50, 18px);
+    grid-auto-rows: 18px;
+    gap:1px;
+    background:linear-gradient(180deg, rgba(0,0,0,0.03), transparent);
   }
-  .grid { display:grid; gap:4px; grid-template-columns: repeat(13, var(--cell)); grid-auto-rows: var(--cell); }
-  .cell {
-    background:var(--floor);
-    border-radius:6px;
-    position:relative;
-    display:flex;align-items:center;justify-content:center;
-    font-weight:700;color:var(--text);
-    transition: background .12s, transform .08s;
-    user-select:none;
-  }
-  .cell.wall { background:var(--wall); box-shadow: inset 0 0 8px rgba(0,0,0,0.6); }
-  .cell.exit { background: linear-gradient(180deg,#12312a,#063434); border:2px solid rgba(185,138,38,0.18); }
-  .cell.player { background:linear-gradient(180deg,#f6e6b2,#d4af37); color:#080405; transform:scale(1.03); box-shadow:0 8px 20px rgba(0,0,0,0.6); }
+  .cell { width:18px; height:18px; border-radius:2px; box-sizing:border-box; }
+  .cell.wall { background:var(--wall); box-shadow: inset 0 0 4px rgba(0,0,0,0.7); }
+  .cell.empty { background:var(--floor); }
+  .cell.player { background:linear-gradient(180deg,var(--player), #d4af37); box-shadow:0 1px 3px rgba(0,0,0,0.6); }
+  .cell.trap { background:var(--trap); }
+  .cell.door { background:var(--door); }
+  .cell.fakeexit { background:#08303a; opacity:0.9; }
+  .cell.exit { background:linear-gradient(180deg,#0b6b33,#045c2b); border:2px solid rgba(185,138,38,0.12); }
 
-  /* controls column */
+  /* controls panel */
   .controls {
-    width:280px;
-    padding:14px;
-    border-radius:12px;
+    width:300px;
+    min-width:260px;
+    padding:12px;
+    border-radius:10px;
     background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.12));
     border:1px solid rgba(255,255,255,0.03);
   }
   .controls h3{margin:0 0 8px 0;color:var(--accent)}
-  .stat{margin:8px 0;font-size:14px}
+  .stat{margin:8px 0;font-size:13px}
   .btns {display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
-  .ctl { padding:12px;border-radius:8px;background:#241b15;color:var(--text);text-align:center;cursor:pointer;border:1px solid rgba(255,255,255,0.02); user-select:none;}
-  .small{font-size:13px;color:#cfc1a2;margin-top:10px}
+  .ctl { padding:10px;border-radius:8px;background:#241b15;color:var(--text);text-align:center;cursor:pointer;border:1px solid rgba(255,255,255,0.02); user-select:none;}
+  .small{font-size:12px;color:#cfc1a2;margin-top:10px}
 
-  /* mobile hint */
-  .mobile-hint{display:none;margin-top:12px;font-size:13px;color:#d6c8a3}
-  @media (max-width:920px){ .board{width:calc(var(--cell) * 11 + 12px)} .grid{ grid-template-columns: repeat(11, var(--cell)); } .mobile-hint{display:block} }
+  .legend { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+  .legend .item { font-size:12px; display:flex; gap:6px; align-items:center; }
+  .swatch { width:14px;height:14px;border-radius:3px; display:inline-block; }
 
   /* modal */
-  .modal-back { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); align-items:center; justify-content:center; z-index:50; }
-  .modal { background:linear-gradient(180deg,#22160f,#0f0b08); padding:18px;border-radius:10px;border:2px solid rgba(185,138,38,0.18); width:340px; color:var(--text); text-align:center }
+  .modal-back { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); align-items:center; justify-content:center; z-index:200; }
+  .modal { background:linear-gradient(180deg,#22160f,#0f0b08); padding:18px;border-radius:10px;border:2px solid rgba(185,138,38,0.18); width:360px; color:var(--text); text-align:center; }
   .modal h2{margin:6px 0 8px 0;color:var(--accent)}
-  .linkHome { display:inline-block;margin-top:12px;padding:10px 14px;border-radius:8px;background:var(--accent);color:#0b0705;text-decoration:none;font-weight:700 }
+  .modal p{font-size:13px;text-align:left;white-space:pre-wrap;}
 
-  /* bump effect for walls */
-  .bump { animation: bumpAnim 120ms linear; }
-  @keyframes bumpAnim {
-    0% { transform: translateX(0); }
-    25% { transform: translateX(-6px); }
-    50% { transform: translateX(6px); }
-    100% { transform: translateX(0); }
+  /* small responsiveness */
+  @media (max-width:980px){
+    .container { flex-direction:column; align-items:center; }
+    .controls { width:100%; max-width:560px; }
+    .board-wrap{ max-width:100%; overflow:auto; }
   }
 
+  /* feedback bump */
+  .bump { animation: bumpAnim 120ms linear; }
+  @keyframes bumpAnim {
+    0%{ transform:translateX(0); } 25%{ transform:translateX(-6px);} 50%{ transform:translateX(6px);} 100%{ transform:translateX(0); }
+  }
+
+  /* subtle guide for mobile */
+  .mobile-tip { display:none; margin-top:8px; font-size:12px; color:#d9cfa2; }
+  @media (max-width:640px){ .mobile-tip{display:block} }
 </style>
 </head>
 <body>
   <div class="wrap">
     <header>
       <div>
-        <h1>Labyrinthe du Tombeau</h1>
-        <p class="lead">Trouve la sortie du tombeau. Utilise les flèches ou ZQSD. Sur mobile, utilise les boutons tactiles.</p>
+        <h1>Labyrinthe — Niveau : Hardcore Ultime (50×50)</h1>
+        <p class="lead">ZQSD / flèches pour te déplacer. Beaucoup de pièges & portes. Bonne chance.</p>
       </div>
-      <div class="small">Difficulté : élevée — patience requise</div>
+      <div class="small">Taille : 50×50 — sauvegarde locale</div>
     </header>
 
-    <div class="game-shell">
-      <div class="board" aria-hidden="false">
-        <div id="grid" class="grid" role="grid" aria-label="Labyrinthe"></div>
+    <div class="container">
+      <div class="board-wrap" id="boardWrap" style="max-width:1000px; max-height:680px;">
+        <div id="grid" class="grid" aria-label="Labyrinthe"></div>
       </div>
 
-      <aside class="controls" aria-hidden="false">
-        <h3>Commandes</h3>
+      <aside class="controls">
+        <h3>Contrôles</h3>
         <div class="stat">Touches: <strong>ZQSD</strong> ou <strong>flèches</strong></div>
-
-        <div class="btns" aria-hidden="false">
+        <div class="btns">
           <div></div>
           <div class="ctl" id="upBtn">▲</div>
           <div></div>
@@ -108,48 +111,49 @@
           <div class="ctl" id="downBtn">▼</div>
           <div class="ctl" id="rightBtn">▶</div>
         </div>
+        <div class="mobile-tip">Sur mobile, utilise les boutons. Tapote plusieurs fois pour avancer rapidement.</div>
 
-        <div class="mobile-hint">Astuce mobile : appuie plusieurs fois pour avancer vite.</div>
+        <div class="legend">
+          <div class="item"><span class="swatch" style="background:var(--floor)"></span> Couloir</div>
+          <div class="item"><span class="swatch" style="background:var(--wall)"></span> Mur</div>
+          <div class="item"><span class="swatch" style="background:var(--trap)"></span> Piège (téléporte)</div>
+          <div class="item"><span class="swatch" style="background:var(--door)"></span> Porte (mini-énigme)</div>
+          <div class="item"><span class="swatch" style="background:var(--exit)"></span> Sortie</div>
+        </div>
 
-        <div class="small" style="margin-top:12px">Progression sauvegardée localement.</div>
-        <div style="margin-top:14px">
+        <div style="margin-top:12px">
           <button class="ctl" id="resetBtn">Réinitialiser</button>
           <button class="ctl" id="homeBtn" style="margin-left:8px">Retour</button>
         </div>
+
+        <div class="small" style="margin-top:10px">Conseil : sauvegarde automatique. Les portes demandent de l'observation.</div>
       </aside>
     </div>
   </div>
 
-  <!-- Modal shown at exit -->
-  <div id="modalBackdrop" class="modal-back" role="dialog" aria-modal="true">
+  <!-- modals -->
+  <div id="modalBackdrop" class="modal-back" aria-hidden="true">
     <div class="modal" id="modal"></div>
   </div>
 
 <script>
-/* Labyrinthe complexe 13x13
-   0 empty, 1 wall, P start, E exit
-   Use grid array of strings; rows x cols = 13 x 13
+/* Hardcore 50x50 maze with traps and door puzzles
+   Implementation notes:
+   - Internally generate a perfect maze on a 51x51 grid (odd-cell algorithm),
+     then display the central 50x50 area (crop) for the user to play on.
+   - Place traps, doors, fake exits after generation.
+   - Controls: ZQSD + arrows, buttons for mobile.
+   - Save player pos in localStorage.
 */
+
 (function(){
-  const STORAGE_KEY = "ancient_maze_v1";
-  // Hard maze layout (13x13) — intentionally twisty and narrow corridors
-  const LAYOUT = [
-    "1111111111111",
-    "1P00100001001",
-    "1010111010111",
-    "1000100010001",
-    "1110101110101",
-    "1000101000101",
-    "1011101011101",
-    "1010001000101",
-    "1010111010101",
-    "1000000010101",
-    "1110111110101",
-    "10000000000E1",
-    "1111111111111"
-  ];
-  const rows = LAYOUT.length;
-  const cols = LAYOUT[0].length;
+  const ROWS = 51; // internal odd-based maze generation
+  const COLS = 51;
+  const DISPLAY_ROWS = 50; // what user sees (we'll crop one row/col)
+  const DISPLAY_COLS = 50;
+
+  const CELL_SIZE = 18; // CSS set earlier
+  const STORAGE_KEY = "hardcore_maze_state_v2";
 
   const gridEl = document.getElementById('grid');
   const modalBackdrop = document.getElementById('modalBackdrop');
@@ -160,73 +164,262 @@
   const rightBtn = document.getElementById('rightBtn');
   const resetBtn = document.getElementById('resetBtn');
   const homeBtn = document.getElementById('homeBtn');
+  const boardWrap = document.getElementById('boardWrap');
 
+  // internal grid: 'wall' or 'empty'
   let grid = [];
-  let player = {r:1, c:1};
+  let player = { r:1, c:1 }; // positions in internal coordinates (odd cells)
+  let displayOffsetR = 1; // we will map internal 1..50 to display 0..49
+  let displayOffsetC = 1;
   let solved = false;
 
-  // Build grid array and find P start
-  for(let r=0;r<rows;r++){
-    grid[r] = [];
-    for(let c=0;c<cols;c++){
-      const ch = LAYOUT[r][c];
-      let type = 'empty';
-      if(ch === '1') type = 'wall';
-      if(ch === 'P'){ type='empty'; player={r,c}; }
-      if(ch === 'E') type='exit';
-      grid[r][c] = {type, r, c, el:null};
+  // puzzles mapping for doors
+  const doorPuzzles = {}; // key "r,c" -> puzzle object {type, data, solved}
+
+  // helpers
+  function idx(r,c){ return r*COLS + c; }
+
+  // Initialize full internal grid as walls
+  function initGrid(){
+    grid = new Array(ROWS);
+    for(let r=0;r<ROWS;r++){
+      grid[r] = new Array(COLS);
+      for(let c=0;c<COLS;c++){
+        grid[r][c] = { type: 'wall', el: null };
+      }
     }
   }
 
-  // render
-  function render(){
-    gridEl.innerHTML = "";
-    gridEl.style.gridTemplateColumns = `repeat(${cols}, var(--cell))`;
-    for(let r=0;r<rows;r++){
-      for(let c=0;c<cols;c++){
-        const cell = grid[r][c];
-        const d = document.createElement('div');
-        d.className = "cell";
-        if(cell.type === 'wall') d.classList.add('wall');
-        if(cell.type === 'exit') d.classList.add('exit');
-        d.dataset.r = r; d.dataset.c = c;
-        d.setAttribute('role','gridcell');
-        d.setAttribute('aria-label', cell.type);
-        if(cell.type === 'exit') d.innerHTML = '<span style="font-size:18px">⚱️</span>';
-        cell.el = d;
-        gridEl.appendChild(d);
+  // Carve maze using recursive backtracker on odd coordinates
+  function generateMaze(){
+    initGrid();
+    const stack = [];
+    const startR = 1, startC = 1;
+    grid[startR][startC].type = 'empty';
+    stack.push([startR,startC]);
+    const dirs = [[0,2],[0,-2],[2,0],[-2,0]];
+    while(stack.length){
+      const [r,c] = stack[stack.length -1];
+      const neighbors = [];
+      for(const [dr,dc] of dirs){
+        const nr = r+dr, nc = c+dc;
+        if(nr>0 && nr<ROWS-1 && nc>0 && nc<COLS-1 && grid[nr][nc].type === 'wall'){
+          neighbors.push([nr,nc,dr,dc]);
+        }
+      }
+      if(neighbors.length === 0){
+        stack.pop();
+      } else {
+        const n = neighbors[Math.floor(Math.random()*neighbors.length)];
+        const nr = n[0], nc = n[1], dr = n[2], dc = n[3];
+        // remove wall between
+        grid[r + dr/2][c + dc/2].type = 'empty';
+        grid[nr][nc].type = 'empty';
+        stack.push([nr,nc]);
       }
     }
+    // make sure borders are walls except entry/exit
+    for(let r=0;r<ROWS;r++){
+      grid[r][0].type='wall';
+      grid[r][COLS-1].type='wall';
+    }
+    for(let c=0;c<COLS;c++){
+      grid[0][c].type='wall';
+      grid[ROWS-1][c].type='wall';
+    }
+  }
+
+  // Map internal odd coords to display coords (we will use internal coords 1..50)
+  function internalToDisplay(r,c){
+    return { r: r - displayOffsetR, c: c - displayOffsetC };
+  }
+
+  // place traps, doors, fake exits after generation
+  function scatterHazards(){
+    // clear any existing doorPuzzles
+    for(const k in doorPuzzles) delete doorPuzzles[k];
+
+    // collect candidate cells (empty passages) excluding near start and planned exit area
+    const candidates = [];
+    for(let r=1;r<ROWS-1;r++){
+      for(let c=1;c<COLS-1;c++){
+        if(grid[r][c].type === 'empty'){
+          // avoid immediate area
+          const distStart = Math.abs(r-1)+Math.abs(c-1);
+          const distExit = Math.abs(r-(ROWS-2)) + Math.abs(c-(COLS-2));
+          if(distStart < 8 || distExit < 8) continue;
+          candidates.push([r,c]);
+        }
+      }
+    }
+
+    // shuffle
+    function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } }
+    shuffle(candidates);
+
+    // Place traps: ~4% of empty cells
+    const trapCount = Math.max(50, Math.floor(candidates.length * 0.04));
+    for(let i=0;i<trapCount && i<candidates.length;i++){
+      const [r,c] = candidates[i];
+      grid[r][c].type = 'trap';
+    }
+
+    // Place doors: place ~10 doors
+    let doorPlaced = 0;
+    let idxCand = trapCount;
+    while(doorPlaced < 10 && idxCand < candidates.length){
+      const [r,c] = candidates[idxCand++];
+      // ensure door not adjacent to many doors or traps
+      let ok = true;
+      for(let dr=-2;dr<=2;dr++) for(let dc=-2;dc<=2;dc++){
+        const rr=r+dr, cc=c+dc;
+        if(rr>0 && rr<ROWS && cc>0 && cc<COLS){
+          if(grid[rr][cc].type === 'door' || grid[rr][cc].type === 'trap') ok=false;
+        }
+      }
+      if(!ok) continue;
+      grid[r][c].type = 'door';
+      // assign a puzzle for this door
+      const key = `${r},${c}`;
+      doorPuzzles[key] = generateDoorPuzzle(key);
+      doorPlaced++;
+    }
+
+    // Place fake exits: a few cells that look like exit but are fake
+    const fakeCount = 6;
+    for(let i=0;i<fakeCount && idxCand < candidates.length;i++){
+      const [r,c] = candidates[idxCand++];
+      if(grid[r][c].type === 'empty') grid[r][c].type = 'fakeexit';
+    }
+  }
+
+  // Generates a mini puzzle object for a door
+  // We'll use three puzzle types: symbol-sequence, small riddle, color-order (click in shown order)
+  function generateDoorPuzzle(key){
+    const types = ['symbols','sequence','math'];
+    const t = types[Math.floor(Math.random()*types.length)];
+    if(t === 'symbols'){
+      // show 4 icons, need to click in correct order (randomized)
+      const icons = ['𓂀','𓃰','𓆣','𓂓','𓆩','𓄿'];
+      shuffleArray(icons);
+      const order = icons.slice(0,4);
+      const solution = order.slice().reverse(); // require reverse for difficulty
+      return { type:'symbols', icons:order, solution };
+    } else if(t === 'sequence'){
+      // show a short pattern (▲▲▼▲) require repeat it
+      const patterns = [['up','up','down','up'], ['left','right','left'], ['up','left','down','right']];
+      const pat = patterns[Math.floor(Math.random()*patterns.length)];
+      return { type:'sequence', pattern:pat };
+    } else {
+      // math: simple arithmetic presented masked; answer is number to enter
+      const a = Math.floor(Math.random()*8)+2;
+      const b = Math.floor(Math.random()*8)+2;
+      const op = Math.random() < 0.5 ? '+' : '×';
+      const solution = op === '+' ? (a+b) : (a*b);
+      return { type:'math', prompt:`Quel est ${a} ${op} ${b} ?`, solution: String(solution) };
+    }
+  }
+
+  // utility
+  function shuffleArray(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; } return a; }
+
+  // Render display grid (crop to 50x50 starting at internal offset 1)
+  function renderDisplay(){
+    gridEl.innerHTML = "";
+    const frag = document.createDocumentFragment();
+    // display rows r = displayOffsetR .. displayOffsetR+DISPLAY_ROWS-1
+    for(let dr=0; dr<DISPLAY_ROWS; dr++){
+      for(let dc=0; dc<DISPLAY_COLS; dc++){
+        const r = displayOffsetR + dr;
+        const c = displayOffsetC + dc;
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        const g = grid[r][c];
+        if(!g) { cell.classList.add('wall'); }
+        else {
+          cell.dataset.r = r; cell.dataset.c = c;
+          if(g.type === 'wall') cell.classList.add('wall');
+          else if(g.type === 'empty') cell.classList.add('empty');
+          else if(g.type === 'trap') { cell.classList.add('trap'); cell.title = 'Piège'; }
+          else if(g.type === 'door') { cell.classList.add('door'); cell.title = 'Porte verrouillée'; }
+          else if(g.type === 'fakeexit') { cell.classList.add('fakeexit'); cell.title = 'Fausse sortie'; }
+          else if(g.type === 'exit') { cell.classList.add('exit'); cell.title = 'Sortie'; }
+          else cell.classList.add('empty');
+          g.el = cell;
+        }
+        frag.appendChild(cell);
+      }
+    }
+    gridEl.appendChild(frag);
     placePlayer();
   }
 
   function placePlayer(){
+    // find previous player cell elements and remove class
     document.querySelectorAll('.cell.player').forEach(x=>x.classList.remove('player'));
-    const cur = grid[player.r][player.c];
-    if(cur && cur.el) cur.el.classList.add('player');
-    // center viewport a bit (optional)
-    try {
-      const rect = cur.el.getBoundingClientRect();
-      // no automatic scrolling to avoid annoying mobile - commented out
-      // window.scrollTo({ top: rect.top - 80, behavior: 'smooth' });
-    } catch(e){}
+    // ensure player's position on the display portion
+    const r = player.r, c = player.c;
+    // if player outside display crop, scroll to bring him into view by adjusting offsets
+    adjustCropForPlayer();
+    // compute index of element in gridEl: (r-displayOffsetR)*DISPLAY_COLS + (c-displayOffsetC)
+    const dr = r - displayOffsetR, dc = c - displayOffsetC;
+    if(dr >=0 && dr < DISPLAY_ROWS && dc >=0 && dc < DISPLAY_COLS){
+      const idx = dr * DISPLAY_COLS + dc;
+      const el = gridEl.children[idx];
+      if(el) el.classList.add('player');
+      // scroll to keep player centered-ish
+      try {
+        const rect = el.getBoundingClientRect();
+        const wrapRect = boardWrap.getBoundingClientRect();
+        const overflowX = rect.left < wrapRect.left || rect.right > wrapRect.right;
+        const overflowY = rect.top < wrapRect.top || rect.bottom > wrapRect.bottom;
+        if(overflowX || overflowY){
+          // scroll such that the player is visible centered
+          const desiredLeft = el.offsetLeft - (boardWrap.clientWidth/2) + (CELL_SIZE/2);
+          const desiredTop = el.offsetTop - (boardWrap.clientHeight/2) + (CELL_SIZE/2);
+          boardWrap.scrollTo({ left: desiredLeft, top: desiredTop, behavior: 'smooth' });
+        }
+      } catch(e){}
+    }
   }
 
-  function canMoveTo(r,c){
-    if(r<0||c<0||r>=rows||c>=cols) return false;
-    return grid[r][c].type !== 'wall';
+  // adjust crop offsets so player is visible in display area
+  function adjustCropForPlayer(){
+    let changed = false;
+    const margin = 8; // when player approaches edge, shift
+    const dr = player.r - displayOffsetR;
+    const dc = player.c - displayOffsetC;
+    if(dr < margin && displayOffsetR > 1){ displayOffsetR = Math.max(1, player.r - margin); changed=true; }
+    if(dr > DISPLAY_ROWS - margin -1 && displayOffsetR < ROWS - DISPLAY_ROWS -1){ displayOffsetR = Math.min(ROWS - DISPLAY_ROWS -1, player.r - (DISPLAY_ROWS - margin -1)); changed=true; }
+    if(dc < margin && displayOffsetC > 1){ displayOffsetC = Math.max(1, player.c - margin); changed=true; }
+    if(dc > DISPLAY_COLS - margin -1 && displayOffsetC < COLS - DISPLAY_COLS -1){ displayOffsetC = Math.min(COLS - DISPLAY_COLS -1, player.c - (DISPLAY_COLS - margin -1)); changed=true; }
+    if(changed) renderDisplay();
   }
 
-  function bumpCell(r,c){
-    const el = grid[r][c].el;
-    if(!el) return;
-    el.classList.add('bump');
-    setTimeout(()=>el.classList.remove('bump'),120);
+  // find reachable exit cell near bottom-right
+  function placeExit(){
+    // find nearest empty cell to (ROWS-2, COLS-2)
+    for(let r=ROWS-2; r>0; r--){
+      for(let c=COLS-2; c>0; c--){
+        if(grid[r][c].type === 'empty'){
+          grid[r][c].type = 'exit';
+          return {r,c};
+        }
+      }
+    }
   }
 
+  // Place player at start
+  function placeStart(){
+    // find internal start at (1,1) if empty, else find nearest
+    if(grid[1][1].type !== 'wall') { player.r=1; player.c=1; return; }
+    for(let r=1;r<ROWS-1;r++) for(let c=1;c<COLS-1;c++) if(grid[r][c].type === 'empty'){ player.r=r; player.c=c; return; }
+  }
+
+  // Save/load state
   function saveState(){
     try{
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({r:player.r,c:player.c}));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ r: player.r, c: player.c, offsetR: displayOffsetR, offsetC: displayOffsetC }));
     }catch(e){}
   }
   function loadState(){
@@ -234,74 +427,225 @@
       const raw = localStorage.getItem(STORAGE_KEY);
       if(raw){
         const s = JSON.parse(raw);
-        if(typeof s.r === 'number' && typeof s.c === 'number'){
-          // validate
-          if(s.r>=0 && s.c>=0 && s.r<rows && s.c<cols && grid[s.r][s.c].type !== 'wall'){
-            player.r = s.r; player.c = s.c;
-          }
+        if(s && typeof s.r === 'number' && typeof s.c === 'number'){
+          player.r = s.r; player.c = s.c;
+          displayOffsetR = s.offsetR || displayOffsetR;
+          displayOffsetC = s.offsetC || displayOffsetC;
         }
       }
     }catch(e){}
   }
 
+  // bump visual when hitting wall
+  function bump(r,c){
+    const key = `${r},${c}`;
+    const g = grid[r][c];
+    if(g && g.el) {
+      g.el.classList.add('bump');
+      setTimeout(()=>g.el && g.el.classList.remove('bump'),120);
+    }
+  }
+
+  // Movement
+  function canMoveTo(r,c){
+    if(r<1 || c<1 || r>=ROWS-1 || c>=COLS-1) return false;
+    const t = grid[r][c].type;
+    return t !== 'wall';
+  }
+
   function moveBy(dr,dc){
     if(solved) return;
-    const nr = player.r + dr;
-    const nc = player.c + dc;
+    const nr = player.r + dr, nc = player.c + dc;
     if(!canMoveTo(nr,nc)){
-      // bump current neighbor or current cell for feedback
-      bumpCell(player.r + dr < 0 ? player.r : Math.min(player.r+dr, rows-1), player.c + dc < 0 ? player.c : Math.min(player.c+dc, cols-1));
+      bump(nr,nc);
       return;
     }
     player.r = nr; player.c = nc;
     placePlayer();
     saveState();
-    checkCell();
+    handleCell(nr,nc);
   }
 
-  function checkCell(){
-    const cur = grid[player.r][player.c];
-    if(cur.type === 'exit'){
+  // handle stepping on special cells
+  function handleCell(r,c){
+    const t = grid[r][c].type;
+    if(t === 'trap'){
+      // teleport back to start with dramatic modal
+      showModal(`<h2>Piège !</h2><p>Un mécanisme ancien te renvoie à l'entrée...</p><div style="display:flex;gap:8px;justify-content:center;margin-top:12px"><button id="okTrap" class="ctl">OK</button></div>`);
+      setTimeout(()=> {
+        const btn = document.getElementById('okTrap');
+        if(btn) btn.addEventListener('click', ()=> { hideModal(); resetToStart(); });
+      },50);
+    } else if(t === 'door'){
+      const key = `${r},${c}`;
+      const puzzle = doorPuzzles[key];
+      if(puzzle && !puzzle.solved) {
+        openDoorPuzzle(key, puzzle);
+      } else {
+        // door solved, allow passing, convert to empty
+        grid[r][c].type = 'empty';
+        renderDisplay(); placePlayer();
+      }
+    } else if(t === 'fakeexit'){
+      // show message and teleport to random nearby dead-end
+      showModal(`<h2>Fausses glyphes</h2><p>La sortie est une illusion. Un piège te désoriente...</p><div style="display:flex;gap:8px;justify-content:center;margin-top:12px"><button id="okFake" class="ctl">OK</button></div>`);
+      setTimeout(()=> {
+        const btn = document.getElementById('okFake');
+        if(btn) btn.addEventListener('click', ()=> { hideModal(); teleportRandom(); });
+      },50);
+    } else if(t === 'exit'){
       solved = true;
-      onSolved();
+      showModal(`<h2>Tu as atteint la sortie</h2><p>ecis le mot de passe est :\n\nENVOIE UN MESSAGE PRIVE A HUSER6666666 QUI CERTIFIE SUR L'HONNEUR QUE TU NE DONNERAS CETTE SOLUTION A PERSONNE ET IL TE DONNERA LE MOT DE PASSE</p><div style="display:flex;gap:8px;justify-content:center;margin-top:12px"><a class="ctl" href="index.html">Retour</a> <button id="replay" class="ctl">Recommencer</button></div>`);
+      setTimeout(()=> {
+        const rbtn = document.getElementById('replay');
+        if(rbtn) rbtn.addEventListener('click', ()=> { hideModal(); solved=false; resetToStart(); });
+      },50);
     }
   }
 
-  function onSolved(){
-    // Show the popup with the message requested
-    showModal(`
-      <h2>Tu as atteint la sortie</h2>
-      <p style="text-align:left;white-space:pre-wrap;">
-ecis le mot de passe est :
-ENVOI UN MESSAGE PRIVE A HUSER6666666 QUI CERTIFIE SUR L'HONNEUR QUE TU NE DONNERAS CETTE SOLUTION A PERSONNE ET IL TE DONNERA LE MOT DE PASSE
-      </p>
-      <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
-        <a class="linkHome" href="index.html">Retour au site</a>
-        <button id="replayBtn" class="linkHome" style="background:#fff;color:#1b0f06">Rejouer</button>
-      </div>
-    `);
-    // attach replay handler
-    setTimeout(()=>{
-      const r = document.getElementById('replayBtn');
-      if(r) r.addEventListener('click', ()=>{ hideModal(); solved=false; resetPosition(); });
-    },50);
+  function resetToStart(){
+    // find start (1,1)
+    player.r = 1; player.c = 1;
+    displayOffsetR = 1; displayOffsetC = 1;
+    saveState();
+    renderDisplay();
   }
 
+  function teleportRandom(){
+    // teleport to a random empty cell near start (but not trap)
+    const empties = [];
+    for(let r=1;r<ROWS-1;r++) for(let c=1;c<COLS-1;c++){
+      if(grid[r][c].type === 'empty') empties.push([r,c]);
+    }
+    if(empties.length === 0) return resetToStart();
+    const [r,c] = empties[Math.floor(Math.random()*empties.length)];
+    player.r = r; player.c = c; saveState(); renderDisplay();
+  }
+
+  // door puzzle UI
+  function openDoorPuzzle(key, puzzle){
+    if(!puzzle) return;
+    if(puzzle.type === 'symbols'){
+      // display icons in randomized order; user must click icons in solution order
+      const icons = puzzle.icons.slice();
+      const shuffled = shuffleArray(icons.slice());
+      const htmlIcons = shuffled.map(ic=> `<button class="picon" data-icon="${ic}" style="font-size:26px;padding:8px;margin:6px">${ic}</button>`).join('');
+      showModal(`<h2>Porte scellée</h2><p>Clique les symboles dans le bon ordre.</p><div style="display:flex;flex-wrap:wrap;justify-content:center;margin-top:10px">${htmlIcons}</div><div style="margin-top:10px;font-size:12px;color:#d6c8a3">Indice : l'ordre est l'inverse de l'affichage original.</div>`);
+      setTimeout(()=>{
+        const clicks = [];
+        document.querySelectorAll('.picon').forEach(btn=>{
+          btn.addEventListener('click', ()=>{
+            const icon = btn.dataset.icon;
+            clicks.push(icon);
+            // visual feedback
+            btn.style.opacity = '0.5';
+            // check length
+            if(clicks.length === puzzle.solution.length){
+              if(clicks.join('') === puzzle.solution.join('')){
+                hideModal();
+                puzzle.solved = true;
+                // convert door to empty and allow movement
+                const [r,c] = key.split(',').map(Number);
+                grid[r][c].type = 'empty';
+                renderDisplay();
+                placePlayer();
+              } else {
+                // fail -> send back a bit (teleport to start)
+                hideModal();
+                showModal(`<h2>Mauvaise combinaison</h2><p>Une énergie malveillante te renvoie à l'entrée...</p><div style="display:flex;justify-content:center;margin-top:12px"><button id="okfail" class="ctl">OK</button></div>`);
+                setTimeout(()=>{ const b = document.getElementById('okfail'); if(b) b.addEventListener('click', ()=>{ hideModal(); resetToStart(); }); },50);
+              }
+            }
+          });
+        });
+      },50);
+    } else if(puzzle.type === 'sequence'){
+      // show a short sequence of arrows to repeat
+      const pat = puzzle.pattern;
+      const pretty = pat.map(s => s === 'up' ? '▲' : s === 'down' ? '▼' : s === 'left' ? '◀' : '▶').join(' ');
+      showModal(`<h2>Porte rythmique</h2><p>Reproduis la séquence : ${pretty}</p><div style="display:flex;gap:8px;justify-content:center;margin-top:10px"><button id="pb_up" class="ctl">▲</button><button id="pb_left" class="ctl">◀</button><button id="pb_down" class="ctl">▼</button><button id="pb_right" class="ctl">▶</button></div>`);
+      setTimeout(()=>{
+        const input = [];
+        document.getElementById('pb_up').addEventListener('click', ()=> handleSeq('up'));
+        document.getElementById('pb_down').addEventListener('click', ()=> handleSeq('down'));
+        document.getElementById('pb_left').addEventListener('click', ()=> handleSeq('left'));
+        document.getElementById('pb_right').addEventListener('click', ()=> handleSeq('right'));
+        function handleSeq(k){
+          input.push(k);
+          if(input.length === pat.length){
+            const ok = input.join(',') === pat.join(',');
+            if(ok){
+              hideModal();
+              puzzle.solved = true;
+              const [r,c] = key.split(',').map(Number);
+              grid[r][c].type = 'empty'; renderDisplay(); placePlayer();
+            } else {
+              hideModal();
+              showModal(`<h2>Erreur</h2><p>La porte se verrouille et te repousse vers l'entrée.</p><div style="display:flex;justify-content:center;margin-top:12px"><button id="fail1" class="ctl">OK</button></div>`);
+              setTimeout(()=>{ const b=document.getElementById('fail1'); if(b) b.addEventListener('click', ()=>{ hideModal(); resetToStart(); }); },50);
+            }
+          }
+        }
+      },50);
+    } else if(puzzle.type === 'math'){
+      showModal(`<h2>Énigme</h2><p>${puzzle.prompt}</p><input id="pans" placeholder="Réponse" style="padding:8px;border-radius:6px;border:1px solid #333;margin-top:10px"/><div style="display:flex;gap:8px;justify-content:center;margin-top:12px"><button id="pcheck" class="ctl">Valider</button></div>`);
+      setTimeout(()=>{
+        document.getElementById('pcheck').addEventListener('click', ()=>{
+          const val = (document.getElementById('pans').value || '').trim();
+          if(val === String(puzzle.solution)){
+            hideModal(); puzzle.solved = true;
+            const [r,c] = key.split(',').map(Number);
+            grid[r][c].type = 'empty'; renderDisplay(); placePlayer();
+          } else {
+            hideModal();
+            showModal(`<h2>Faux</h2><p>Mauvaise réponse — tu es renvoyé à l'entrée.</p><div style="display:flex;justify-content:center;margin-top:12px"><button id="f2" class="ctl">OK</button></div>`);
+            setTimeout(()=>{ const b=document.getElementById('f2'); if(b) b.addEventListener('click', ()=>{ hideModal(); resetToStart(); }); },50);
+          }
+        });
+      },50);
+    }
+  }
+
+  // show/hide modal
   function showModal(html){
     modal.innerHTML = html;
-    modalBackdrop.style.display = "flex";
+    modalBackdrop.style.display = 'flex';
   }
-  function hideModal(){
-    modalBackdrop.style.display = "none";
+  function hideModal(){ modalBackdrop.style.display = 'none'; }
+
+  // find and set exit
+  function assignExit(){
+    // prefer area near bottom-right
+    for(let r=ROWS-2; r>0; r--){
+      for(let c=COLS-2; c>0; c--){
+        if(grid[r][c].type === 'empty'){
+          grid[r][c].type = 'exit';
+          return;
+        }
+      }
+    }
   }
 
-  // Controls
-  window.addEventListener('keydown',(e)=>{
-    const key = e.key.toLowerCase();
-    if(key === 'arrowup' || key === 'z') moveBy(-1,0);
-    if(key === 'arrowdown' || key === 's') moveBy(1,0);
-    if(key === 'arrowleft' || key === 'q') moveBy(0,-1);
-    if(key === 'arrowright' || key === 'd') moveBy(0,1);
+  // place initial start/exit and hazards & render
+  function setup(){
+    generateMaze();
+    placeStart();
+    assignExit();
+    scatterHazards();
+    // guarantee at least one solution path exists (maze is perfect so yes)
+    renderDisplay();
+    loadState();
+    placePlayer();
+    saveState();
+  }
+
+  // keyboard and buttons
+  window.addEventListener('keydown', (e)=>{
+    const k = e.key.toLowerCase();
+    if(k === 'arrowup' || k === 'z'){ moveBy(-1,0); e.preventDefault(); }
+    if(k === 'arrowdown' || k === 's'){ moveBy(1,0); e.preventDefault(); }
+    if(k === 'arrowleft' || k === 'q'){ moveBy(0,-1); e.preventDefault(); }
+    if(k === 'arrowright' || k === 'd'){ moveBy(0,1); e.preventDefault(); }
   });
 
   upBtn.addEventListener('click', ()=> moveBy(-1,0));
@@ -310,28 +654,14 @@ ENVOI UN MESSAGE PRIVE A HUSER6666666 QUI CERTIFIE SUR L'HONNEUR QUE TU NE DONNE
   rightBtn.addEventListener('click', ()=> moveBy(0,1));
 
   resetBtn.addEventListener('click', ()=> {
-    if(confirm("Réinitialiser votre position au départ ?")){
-      resetPosition();
-    }
+    if(confirm('Réinitialiser votre progression ?')) { localStorage.removeItem(STORAGE_KEY); setup(); }
   });
-  homeBtn.addEventListener('click', ()=> {
-    if(confirm("Retourner à la page d'accueil ?")) window.location.href = "index.html";
-  });
+  homeBtn.addEventListener('click', ()=> { if(confirm('Retourner au site ?')) window.location.href = 'index.html'; });
 
-  modalBackdrop.addEventListener('click',(e)=>{ if(e.target === modalBackdrop) hideModal(); });
+  modalBackdrop.addEventListener('click', (e)=>{ if(e.target === modalBackdrop) hideModal(); });
 
-  function resetPosition(){
-    // find original P
-    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) {
-      if(LAYOUT[r][c] === 'P'){ player.r=r; player.c=c; saveState(); placePlayer(); return; }
-    }
-  }
-
-  // initialize
-  render();
-  loadState();
-  placePlayer();
-  checkCell();
+  // initialize everything
+  setup();
 
 })();
 </script>
