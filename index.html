@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Pierre • Feuille • Ciseaux — Temple d'Égypte</title>
+<title>HUSER6666666</title>
 <style>
   /* ===== Reset & base ===== */
   * { box-sizing: border-box; }
@@ -288,9 +288,9 @@
         <div class="ankh" aria-hidden="true">
           <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><path fill="#fff" d="M32 4c-6.075 0-11 4.925-11 11 0 5.523 7 11 11 11s11-5.477 11-11c0-6.075-4.925-11-11-11zm1 30h-2v22h2zM22 36h20v6H22z"/></svg>
         </div>
-        Temple de la Nuit — PFC
+        I know what you've done !
       </div>
-      <div class="subtitle">Défie l'oracle. 3 victoires pour remporter (ou perdre) le secret.</div>
+      <div class="subtitle">Défie huser6666666. 3 victoires pour remporter (ou perdre) le secret.</div>
 
       <div class="scoreboard" role="region" aria-label="scores">
         <div class="score" id="playerScoreBox">
@@ -298,22 +298,22 @@
           <div class="value" id="playerScore">0</div>
         </div>
         <div class="score" id="computerScoreBox">
-          <div class="label">Ordinateur</div>
+          <div class="label">huser6666666</div>
           <div class="value" id="computerScore">0</div>
         </div>
       </div>
 
       <div class="history" id="history" aria-live="polite">
         <strong>Journal</strong>
-        <div id="historyList" style="margin-top:8px;">Bienvenue, ô voyageur... choisissez ton destin.</div>
+        <div id="historyList" style="margin-top:8px;">Bienvenue, ô voyageur... choisis ton destin.</div>
       </div>
     </div>
 
     <div class="right">
       <div style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;">
         <div style="text-align:left">
-          <div style="font-weight:700;font-size:13px;">Choisis ton geste</div>
-          <div style="font-size:12px;color:#dccf9f;opacity:0.9;margin-top:6px;">La table sacrée décidera.</div>
+          <div style="font-weight:700;font-size:13px;">Choisis ton geste petite merde !</div>
+          <div style="font-size:12px;color:#dccf9f;opacity:0.9;margin-top:6px;">La table sacrée décidera de ton sort jeune zgeg.</div>
         </div>
         <div style="text-align:right">
           <div style="font-size:12px;color:#d9cfa2;opacity:0.9">Meilleur de 3 victoires</div>
@@ -497,8 +497,8 @@
     if (playerScore >= 3) {
       // show winning popup with password input
       showModal(`
-        <h2>Tu as percé le mystère</h2>
-        <p>Écris le mot de passe pour révéler la vidéo finale.</p>
+        <h2>Tu as gagné... bravo pour cette fois</h2>
+        <p>Écris le mot de passe pour révéler la suite.</p>
         <div style="display:flex;gap:8px;justify-content:center;flex-direction:column;align-items:center;">
           <input id="pw" type="password" placeholder="Mot de passe..." aria-label="Mot de passe">
           <div id="pwError" style="color:#ffb0a0;font-size:13px;min-height:18px;"></div>
@@ -519,7 +519,7 @@
         const correctPassword = "TEST"; // exact match
 
         if (submit) submit.addEventListener('click', () => {
-          const val = pwInput.value || "";
+          const val = pwInput.value || "ABDCE";
           if (val === correctPassword) {
             // Redirect to YouTube video (use the link you provided)
             const url = "https://www.youtube.com/shorts/zSEc5Zmpbbo";
@@ -527,7 +527,7 @@
             modalBackdrop.style.display = "none";
             window.location.href = url;
           } else {
-            pwError.textContent = "Mot de passe incorrect. Réessaie.";
+            pwError.textContent = "Mot de passe incorrect. Réessaie si bien sur t'es pas comme Noé à rien comprendre.";
             pwInput.focus();
             pwInput.select();
           }
