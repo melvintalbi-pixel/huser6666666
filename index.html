@@ -91,7 +91,7 @@
 </head>
 <body>
   <main>
-    <h1>Affronte l'Oracle d'Égypte</h1>
+    <h1>Affronte huser66666666</h1>
     <div class="choices">
       <button data-move="rock">🗿 Pierre</button>
       <button data-move="paper">📜 Feuille</button>
@@ -150,17 +150,17 @@
 
     if(res==="tie"){ log(`Égalité : ${names[player]} vs ${names[comp]}`); }
     else if(res==="player"){ playerScore++; log(`Tu gagnes : ${names[player]} bat ${names[comp]}`); soundWin.play(); document.body.classList.add("cine-win","shake"); setTimeout(()=>document.body.classList.remove("cine-win","shake"),600); }
-    else { computerScore++; log(`L'Oracle gagne : ${names[comp]} bat ${names[player]}`); soundLose.play(); document.body.classList.add("cine-lose","shake"); setTimeout(()=>document.body.classList.remove("cine-lose","shake"),600); }
+    else { computerScore++; log(`huser6666666 gagne : ${names[comp]} bat ${names[player]}`); soundLose.play(); document.body.classList.add("cine-lose","shake"); setTimeout(()=>document.body.classList.remove("cine-lose","shake"),600); }
 
     update();
 
     if(computerScore>=3){
-      showModal(`<h2>La destinée est cruelle...</h2><p>La prochaine fois je sors mon paff ce sera plus simple pour toi de le battre.</p><div class="actions"><button onclick="closeModal()">OK</button></div>`);
+      showModal(`<h2>La destinée est cruelle... enfin cruelle ...</h2><p>La prochaine fois je sors mon paff ce sera plus simple pour toi de le battre.</p><div class="actions"><button onclick="closeModal()">OK</button></div>`);
     }
     if(playerScore>=3){
       showModal(`
         <h2>Tu as gagné... bravo pour cette fois</h2>
-        <p>Écris le mot de passe pour révéler la suite.</p>
+        <p>Écris le mot de passe pour révéler la suite. Ne me dis pas que tu n'as rien suivi encore ! </p>
         <input id="pw" type="password" placeholder="Mot de passe...">
         <div id="pwError" style="color:#ffb0a0;font-size:13px;min-height:18px;"></div>
         <div class="actions">
