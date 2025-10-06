@@ -194,7 +194,7 @@ document.querySelectorAll('button[data-move]').forEach(btn=>{
   btn.addEventListener('click', ()=> playRound(btn.dataset.move));
 });
 
-// Glyphes avec reset après 6 clics
+// Glyphes avec reset après 6 clics (invisible)
 const secretSequence=[
   {id:"1", clicks:2},
   {id:"3", clicks:1},
@@ -215,8 +215,9 @@ document.querySelectorAll('#secretSymbols .glyph').forEach(el=>{
     } else { currentStep=0; clickCount=0; }
 
     if(totalClicks >= 6 && currentStep !== secretSequence.length){
-      currentStep=0; clickCount=0; totalClicks=0;
-      alert("Séquence réinitialisée ! Essaie encore.");
+      currentStep=0; 
+      clickCount=0; 
+      totalClicks=0; // réinitialisation invisible
     }
 
     if(currentStep === secretSequence.length){
