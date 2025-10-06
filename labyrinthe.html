@@ -1,166 +1,175 @@
 <!doctype html>
 <html lang="fr">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Labyrinthe — Hardcore 25×25</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Labyrinthe Hardcore — Trap Obligatoire</title>
 <style>
 :root{
-  --bg:#050304; --wall:#0b0705; --floor:#2b2218; --player:#f6e6b2;
-  --trap:#7b1420; --exit:#0b6b33; --text:#efe6c9; --accent:#b98a26;
+  --bg:#050304;
+  --wall:#0b0705;
+  --floor:#2b2218;
+  --player:#f6e6b2;
+  --trap:#7b1420;
+  --exit:#0b6b33;
+  --text:#efe6c9;
+  --accent:#b98a26;
 }
-*{box-sizing:border-box;}
-html,body{height:100%;margin:0;background:var(--bg);font-family:Inter,system-ui,Arial;color:var(--text);}
-#boardWrap{width:100vw;height:100vh;display:flex;justify-content:center;align-items:center;overflow:hidden;}
-#grid{display:grid;grid-template-columns:repeat(25,20px);grid-template-rows:repeat(25,20px);gap:2px;}
-.cell{width:20px;height:20px;border-radius:3px;}
+body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#020202,var(--bg));font-family:Arial,sans-serif;color:var(--text);}
+#grid{display:grid;grid-template-columns:repeat(25,24px);grid-template-rows:repeat(25,24px);gap:1px;}
+.cell{width:24px;height:24px;box-sizing:border-box;}
 .wall{background:var(--wall);}
 .empty{background:var(--floor);}
-.player{background:linear-gradient(180deg,var(--player),#d4af37);box-shadow:0 1px 3px rgba(0,0,0,0.6);}
+.player{background:linear-gradient(180deg,var(--player),#d4af37);}
 .trap{background:var(--trap);}
-.exit{background:linear-gradient(180deg,#0b6b33,#045c2b);}
-.modal-back{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;z-index:200;}
+.exit{background:var(--exit);}
+.modal-back{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);justify-content:center;align-items:center;}
 .modal{background:linear-gradient(180deg,#22160f,#0f0b08);padding:18px;border-radius:10px;border:2px solid rgba(185,138,38,0.18);width:360px;color:var(--text);text-align:center;}
-.ctl{padding:10px;border-radius:8px;background:#241b15;color:var(--text);text-align:center;cursor:pointer;border:1px solid rgba(255,255,255,0.02);margin:4px;}
+.ctl{padding:8px 12px;margin-top:12px;border-radius:6px;background:#241b15;color:var(--text);cursor:pointer;}
 </style>
 </head>
 <body>
-<div id="boardWrap">
-  <div id="grid"></div>
-</div>
+
+<div id="grid"></div>
 
 <div class="modal-back" id="modalBackdrop">
   <div class="modal" id="modal"></div>
 </div>
 
 <script>
-const ROWS=25,COLS=25;
-const gridEl=document.getElementById('grid');
-const modalBackdrop=document.getElementById('modalBackdrop');
-const modal=document.getElementById('modal');
+(function(){
+  const ROWS = 25, COLS = 25;
+  const gridEl = document.getElementById('grid');
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  const modal = document.getElementById('modal');
 
-let grid=[];
-let player={r:1,c:1};
-let trapPassed=false;
+  let grid = [], player={r:1,c:1}, trapPassed=false;
 
-// Initialisation grille (tout mur)
-for(let r=0;r<ROWS;r++){
-  grid[r]=[];
-  for(let c=0;c<COLS;c++){
-    grid[r][c]={type:'wall'};
-  }
-}
-
-// Génération labyrinthe simple mais correct
-function carveMaze(){
-  for(let r=1;r<ROWS-1;r++){
-    for(let c=1;c<COLS-1;c++){
-      if(r%2===1 && c%2===1) grid[r][c].type='empty';
-    }
-  }
-  // Création de chemins aléatoires horizontaux/verticaux
-  for(let r=1;r<ROWS-1;r+=2){
-    for(let c=1;c<COLS-1;c+=2){
-      const dirs=[[0,1],[1,0]];
-      const [dr,dc]=dirs[Math.floor(Math.random()*2)];
-      const nr=r+dr,nc=c+dc;
-      if(nr<ROWS-1 && nc<COLS-1) grid[nr][nc].type='empty';
-    }
-  }
-  // Trap obligatoire
-  grid[ROWS-3][1].type='trap';
-  // Sortie
-  grid[ROWS-2][COLS-2].type='exit';
-}
-carveMaze();
-
-// Affichage
-function render(){
-  gridEl.innerHTML='';
+  // init grid
   for(let r=0;r<ROWS;r++){
+    grid[r]=[];
     for(let c=0;c<COLS;c++){
-      const div=document.createElement('div');
-      div.className='cell';
-      const t=grid[r][c].type;
-      if(r===player.r && c===player.c) div.classList.add('player');
-      else div.classList.add(t);
-      gridEl.appendChild(div);
+      grid[r][c]={type:'wall',el:null};
     }
   }
-}
-render();
 
-// Déplacements uniquement H/V
-function canMove(r,c){return r>=0 && r<ROWS && c>=0 && c<COLS && (grid[r][c].type!=='wall');}
-function move(dr,dc){
-  const nr=player.r+dr,nc=player.c+dc;
-  if(canMove(nr,nc)){
-    player.r=nr; player.c=nc;
-    render();
-    checkCell();
+  // DFS maze generation (odd cells)
+  function generateMaze(){
+    const stack=[[1,1]];
+    grid[1][1].type='empty';
+    const dirs=[[0,2],[0,-2],[2,0],[-2,0]];
+    while(stack.length){
+      const [r,c] = stack[stack.length-1];
+      let neighbors = [];
+      for(const [dr,dc] of dirs){
+        const nr=r+dr,nc=c+dc;
+        if(nr>0 && nr<ROWS && nc>0 && nc<COLS && grid[nr][nc].type==='wall') neighbors.push([nr,nc,dr,dc]);
+      }
+      if(neighbors.length===0){ stack.pop(); continue; }
+      const [nr,nc,dr,dc]=neighbors[Math.floor(Math.random()*neighbors.length)];
+      grid[r+dr/2][c+dc/2].type='empty';
+      grid[nr][nc].type='empty';
+      stack.push([nr,nc]);
+    }
   }
-}
 
-// Détection case spéciale
-function checkCell(){
-  const t=grid[player.r][player.c].type;
-  if(t==='trap' && !trapPassed) handleTrap();
-  if(t==='exit' && trapPassed){
-    showModal('<h2>Bravo !</h2><p>Tu as atteint la sortie !</p>');
+  generateMaze();
+
+  // Place trap in a forced path
+  const trapR= Math.floor(ROWS/2), trapC=Math.floor(COLS/2);
+  grid[trapR][trapC].type='trap';
+
+  // Place exit on far end
+  let exitR=ROWS-2, exitC=COLS-2;
+  while(grid[exitR][exitC].type!=='empty'){ exitR--; exitC--; }
+  grid[exitR][exitC].type='exit';
+
+  // Render
+  function render(){
+    gridEl.innerHTML='';
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        const div=document.createElement('div');
+        const cell=grid[r][c];
+        div.classList.add('cell');
+        if(cell.type==='wall') div.classList.add('wall');
+        else if(cell.type==='empty') div.classList.add('empty');
+        else if(cell.type==='trap') div.classList.add('trap');
+        else if(cell.type==='exit') div.classList.add('exit');
+        if(r===player.r && c===player.c) div.classList.add('player');
+        cell.el=div;
+        gridEl.appendChild(div);
+      }
+    }
   }
-}
 
-// Trap obligatoire avec calcul complexe et popups IA
-function handleTrap(){
-  showModal(`<h2>Piège obligatoire</h2><p>Résous ce calcul pour continuer :</p>
-  <p style="font-weight:bold;">Math.round(Math.sin(1.5707963267948966)*1e7 + Math.cos(0)*1e6 - 4333334)</p>
-  <input id="ans" placeholder="Réponse" style="padding:6px;border-radius:4px;margin-top:6px;"><br>
-  <button id="check" class="ctl">Valider</button>`);
-  
-  setTimeout(()=>{
-    document.getElementById('check').addEventListener('click',()=>{
-      const val=Number(document.getElementById('ans').value);
-      if(val===6666666){
-        hideModal();
-        // Popup IA
-        showModal(`<h2>Bravo !</h2><p>As-tu utilisé l'IA ?</p>
-        <button id="yesAI" class="ctl">Oui</button>
-        <button id="noAI" class="ctl">Non</button>`);
-        setTimeout(()=>{
-          document.getElementById('yesAI').addEventListener('click',()=>{trapPassed=true;hideModal();render();});
-          document.getElementById('noAI').addEventListener('click',()=>{
-            hideModal();
-            showModal(`<h2>En plus tu mens !</h2>
-            <button id="confess" class="ctl">oui j'avoue</button>
-            <button id="lie" class="ctl">J'ai menti je suis une sous merde</button>`);
-            setTimeout(()=>{
-              document.getElementById('confess').addEventListener('click',()=>{trapPassed=true;hideModal();render();});
-              document.getElementById('lie').addEventListener('click',()=>{trapPassed=true;hideModal();render();});
-            },50);
-          });
-        },50);
-      } else { alert('Mauvaise réponse !'); player={r:1,c:1};render(); hideModal();}
-    });
-  },50);
-}
+  render();
 
-// Contrôles clavier
-window.addEventListener('keydown',e=>{
-  switch(e.key){
-    case 'ArrowUp': move(-1,0); break;
-    case 'ArrowDown': move(1,0); break;
-    case 'ArrowLeft': move(0,-1); break;
-    case 'ArrowRight': move(0,1); break;
-    case 'w': move(-1,0); break;
-    case 's': move(1,0); break;
-    case 'a': move(0,-1); break;
-    case 'd': move(0,1); break;
+  function showModal(html){ modal.innerHTML=html; modalBackdrop.style.display='flex'; }
+  function hideModal(){ modalBackdrop.style.display='none'; }
+
+  function resetPlayer(){ player={r:1,c:1}; trapPassed=false; render(); }
+
+  // Trap obligatoire avec calcul et popup IA
+  function handleTrap(){
+    showModal(`<h2>Piège obligatoire</h2><p>Résous ce calcul pour continuer :</p>
+    <p style="font-weight:bold;font-size:16px;">Math.round(Math.sin(1.5707963267948966)*1e7 + Math.cos(0)*1e6 - 4333334)</p>
+    <input id="ans" placeholder="Réponse" style="padding:6px;border-radius:4px;margin-top:6px;"><br>
+    <button id="check" class="ctl">Valider</button>`);
+    setTimeout(()=>{
+      document.getElementById('check').addEventListener('click',()=>{
+        const val=Number(document.getElementById('ans').value);
+        if(val===6666666){
+          trapPassed=true;
+          hideModal();
+          render();
+          // Popup IA
+          showModal(`<h2>Bravo !</h2><p>As-tu utilisé l'IA ?</p>
+            <button id="yesAI" class="ctl">Oui</button>
+            <button id="noAI" class="ctl">Non</button>`);
+          setTimeout(()=>{
+            document.getElementById('yesAI').addEventListener('click',()=>{hideModal();});
+            document.getElementById('noAI').addEventListener('click',()=>{
+              hideModal();
+              showModal(`<h2>En plus tu mens !</h2>
+              <button id="confess" class="ctl">oui j'avoue</button>
+              <button id="lie" class="ctl">J'ai menti je suis une sous merde</button>`);
+              setTimeout(()=>{
+                document.getElementById('confess').addEventListener('click',()=>{hideModal();});
+                document.getElementById('lie').addEventListener('click',()=>{hideModal();});
+              },50);
+            });
+          },50);
+        } else { alert('Mauvaise réponse. Recommence !'); resetPlayer(); hideModal(); }
+      });
+    },50);
   }
-});
 
-// Modals
-function showModal(html){ modal.innerHTML=html; modalBackdrop.style.display='flex'; }
-function hideModal(){ modalBackdrop.style.display='none'; }
+  function handleExit(){
+    if(!trapPassed){ alert('Tu dois passer par le piège avant de sortir !'); return; }
+    showModal(`<h2>Bravo !</h2><p>Le mot de passe est : ENVOIE UN MESSAGE PRIVE A HUSER6666666 QUI CERTIFIE SUR L'HONNEUR QUE TU NE DONNERAS CETTE SOLUTION A PERSONNE ET IL TE DONNERA LE MOT DE PASSE</p>
+    <button onclick="location.reload()" class="ctl">Recommencer</button>`);
+  }
+
+  // movement
+  function canMove(r,c){ return r>=0 && r<ROWS && c>=0 && c<COLS && (grid[r][c].type==='empty' || grid[r][c].type==='trap' || grid[r][c].type==='exit'); }
+
+  document.addEventListener('keydown',e=>{
+    let nr=player.r,nc=player.c;
+    if(e.key==='ArrowUp') nr--;
+    else if(e.key==='ArrowDown') nr++;
+    else if(e.key==='ArrowLeft') nc--;
+    else if(e.key==='ArrowRight') nc++;
+    else return;
+    if(canMove(nr,nc)){
+      player.r=nr; player.c=nc;
+      const type=grid[nr][nc].type;
+      if(type==='trap' && !trapPassed) handleTrap();
+      else if(type==='exit') handleExit();
+      render();
+    }
+  });
+})();
 </script>
 </body>
 </html>
