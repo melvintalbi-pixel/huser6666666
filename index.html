@@ -91,182 +91,192 @@
     80%{transform:translate(6px,0);}
   }
 
-/* Glyphes secrets pour labyrinthe */
-#secretSymbols {
-  position: fixed;
-  bottom: 20px;  /* un peu au-dessus du bord */
-  left: 20px;
-  display: flex;
-  gap: 12px;
-  z-index: 5;
-}
+  /* Glyphes secrets pour labyrinthe */
+  #secretSymbols {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    display: flex;
+    gap: 12px;
+    z-index: 5;
+  }
 
-.glyph {
-  font-size: 36px;  /* un peu plus grand */
-  opacity: 0.5;     /* plus visible */
-  cursor: pointer;
-  user-select: none;
-  transition: opacity 0.2s, transform 0.2s;
-}
+  .glyph {
+    font-size: 36px;
+    opacity: 0.5;
+    cursor: pointer;
+    user-select: none;
+    transition: opacity 0.2s, transform 0.2s;
+  }
 
-.glyph:hover {
-  opacity: 0.8;     /* hover plus marqué */
-  transform: scale(1.2); /* petit effet zoom au survol */
-}
+  .glyph:hover {
+    opacity: 0.8;
+    transform: scale(1.2);
+  }
 </style>
 </head>
 <body>
-  <!-- === Mobile block : si user agent mobile, on affiche un message et on empêche l'expérience === -->
-  <script>
-    if (/Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#000;color:#fff;font-family:Arial,sans-serif;text-align:center;padding:20px;"><h1>Merci d\\'utiliser un ordinateur pour l\\'expérience suivante</h1></div>';
-      // marque pour le script principal
-      window._blockedOnMobile = true;
-    }
-  </script>
+<script>
+  // Bloquer mobiles
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  if(isMobile){
+    document.body.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;height:100vh;
+                  background:#000;color:#fff;font-family:Arial,sans-serif;text-align:center;padding:20px;">
+        <h1>Merci d'utiliser un ordinateur pour l'expérience suivante</h1>
+      </div>`;
+    window._blockedOnMobile = true;
+  }
+</script>
 
-  <main>
-    <h1>Affronte huser66666666</h1>
-    <div class="choices">
-      <button data-move="rock">🗿 Pierre</button>
-      <button data-move="paper">📜 Feuille</button>
-      <button data-move="scissors">⚔️ Ciseaux</button>
-    </div>
-    <div class="scores">
-      Toi : <span id="playerScore">0</span> | Oracle : <span id="computerScore">0</span>
-    </div>
-    <div>Ton choix : <span id="playerChoice">—</span></div>
-    <div>Choix Oracle : <span id="computerChoice">—</span></div>
-    <div id="history">Que les anciens dieux te guident...</div>
-  </main>
-
-  <!-- Modale -->
-  <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
-    <div class="modal" id="modal"></div>
+<main>
+  <h1>Affronte huser66666666</h1>
+  <div class="choices">
+    <button data-move="rock">🗿 Pierre</button>
+    <button data-move="paper">📜 Feuille</button>
+    <button data-move="scissors">⚔️ Ciseaux</button>
   </div>
-
-  <!-- Sons -->
-  <audio id="soundWin" src="https://www.myinstants.com/media/sounds/anime-ahh.mp3" preload="auto"></audio>
-  <audio id="soundLose" src="https://www.myinstants.com/media/sounds/belle-proute.mp3" preload="auto"></audio>
-
-  <!-- Symboles secrets -->
-  <div id="secretSymbols">
-    <span class="glyph" data-id="1">𓂀</span>
-    <span class="glyph" data-id="2">𓃰</span>
-    <span class="glyph" data-id="3">𓆣</span>
+  <div class="scores">
+    Toi : <span id="playerScore">0</span> | Oracle : <span id="computerScore">0</span>
   </div>
+  <div>Ton choix : <span id="playerChoice">—</span></div>
+  <div>Choix Oracle : <span id="computerChoice">—</span></div>
+  <div id="history">Que les anciens dieux te guident...</div>
+</main>
+
+<div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
+  <div class="modal" id="modal"></div>
+</div>
+
+<!-- Sons -->
+<audio id="soundWin" src="https://www.myinstants.com/media/sounds/anime-ahh.mp3" preload="auto"></audio>
+<audio id="soundLose" src="https://www.myinstants.com/media/sounds/belle-proute.mp3" preload="auto"></audio>
+
+<!-- Symboles secrets -->
+<div id="secretSymbols">
+  <span class="glyph" data-id="1">𓂀</span>
+  <span class="glyph" data-id="2">𓃰</span>
+  <span class="glyph" data-id="3">𓆣</span>
+</div>
 
 <script>
-(function(){
-  // si on est en mobile et qu'on a bloqué, on stoppe l'initialisation pour éviter erreurs
-  if (window._blockedOnMobile) return;
+const choices = ["rock","paper","scissors"];
+const playerScoreEl = document.getElementById('playerScore');
+const computerScoreEl = document.getElementById('computerScore');
+const playerChoiceEl = document.getElementById('playerChoice');
+const computerChoiceEl = document.getElementById('computerChoice');
+const historyList = document.getElementById('history');
+const modalBackdrop = document.getElementById('modalBackdrop');
+const modal = document.getElementById('modal');
+const soundWin = document.getElementById('soundWin');
+const soundLose = document.getElementById('soundLose');
 
-  const choices = ["rock","paper","scissors"];
-  const playerScoreEl = document.getElementById('playerScore');
-  const computerScoreEl = document.getElementById('computerScore');
-  const playerChoiceEl = document.getElementById('playerChoice');
-  const computerChoiceEl = document.getElementById('computerChoice');
-  const historyList = document.getElementById('history');
-  const modalBackdrop = document.getElementById('modalBackdrop');
-  const modal = document.getElementById('modal');
-  const soundWin = document.getElementById('soundWin');
-  const soundLose = document.getElementById('soundLose');
+let playerScore=0, computerScore=0;
+const names={rock:"Pierre", paper:"Feuille", scissors:"Ciseaux"};
 
-  let playerScore=0, computerScore=0;
-  const names={rock:"Pierre", paper:"Feuille", scissors:"Ciseaux"};
+function compMove(){ return choices[Math.floor(Math.random()*3)]; }
+function decide(p,c){
+  if(p===c) return "tie";
+  if((p==="rock"&&c==="scissors")||(p==="paper"&&c==="rock")||(p==="scissors"&&c==="paper")) return "player";
+  return "computer";
+}
+function update(){ playerScoreEl.textContent=playerScore; computerScoreEl.textContent=computerScore; }
+function log(txt){ const p=document.createElement('div'); p.textContent=txt; historyList.prepend(p); }
 
-  function compMove(){ return choices[Math.floor(Math.random()*3)]; }
-  function decide(p,c){
-    if(p===c) return "tie";
-    if((p==="rock"&&c==="scissors")||(p==="paper"&&c==="rock")||(p==="scissors"&&c==="paper")) return "player";
-    return "computer";
-  }
-  function update(){ playerScoreEl.textContent=playerScore; computerScoreEl.textContent=computerScore; }
-  function log(txt){ const p=document.createElement('div'); p.textContent=txt; historyList.prepend(p); }
+function showModal(html){
+  modal.innerHTML=html;
+  modalBackdrop.style.display="flex";
+  modalBackdrop.setAttribute('aria-hidden','false');
 
-  function showModal(html){ modal.innerHTML=html; modalBackdrop.style.display="flex"; modalBackdrop.setAttribute('aria-hidden','false'); }
-  function closeModal(){ modalBackdrop.style.display="none"; modalBackdrop.setAttribute('aria-hidden','true'); modal.innerHTML=""; reset(); }
-  function reset(){ playerScore=0; computerScore=0; update(); playerChoiceEl.textContent="—"; computerChoiceEl.textContent="—"; }
+  // Binder Annuler si présent
+  const cancelBtn = modal.querySelector('.actions button:nth-child(2)');
+  if(cancelBtn) cancelBtn.addEventListener('click', closeModal);
 
-  function playRound(player){
-    const comp=compMove();
-    playerChoiceEl.textContent=names[player];
-    computerChoiceEl.textContent=names[comp];
-    const res=decide(player,comp);
+  // Binder Valider si présent
+  const validateBtn = modal.querySelector('#validateBtn');
+  if(validateBtn) validateBtn.addEventListener('click', checkPw);
+}
 
-    if(res==="tie"){ log(`Égalité : ${names[player]} vs ${names[comp]}`); }
-    else if(res==="player"){
-      playerScore++; log(`Tu gagnes : ${names[player]} bat ${names[comp]}`); 
-      soundWin.play(); 
-      document.body.classList.add("cine-win","shake");
-      setTimeout(()=>document.body.classList.remove("cine-win","shake"),600);
-    } else {
-      computerScore++; log(`huser6666666 gagne : ${names[comp]} bat ${names[player]}`);
-      soundLose.play();
-      document.body.classList.add("cine-lose","shake");
-      setTimeout(()=>document.body.classList.remove("cine-lose","shake"),600);
-    }
+function closeModal(){ modalBackdrop.style.display="none"; modalBackdrop.setAttribute('aria-hidden','true'); modal.innerHTML=""; reset(); }
+function reset(){ playerScore=0; computerScore=0; update(); playerChoiceEl.textContent="—"; computerChoiceEl.textContent="—"; }
 
-    update();
+function playRound(player){
+  const comp=compMove();
+  playerChoiceEl.textContent=names[player];
+  computerChoiceEl.textContent=names[comp];
+  const res=decide(player,comp);
 
-    if(computerScore>=3){
-      showModal(`<h2>La destinée est cruelle...</h2><p>La prochaine fois je sors mon paff ce sera plus simple pour toi de le battre.</p><div class="actions"><button onclick="closeModal()">OK</button></div>`);
-    }
-    if(playerScore>=3){
-      // mot de passe encodé en Base64 (ici "TEST" => "VEVTVA==")
-      const encodedPwd = "VEVTVA==";
-      showModal(`
-        <h2>Tu as gagné... bravo pour cette fois</h2>
-        <p>Écris le mot de passe pour révéler la suite.</p>
-        <input id="pw" type="password" placeholder="Mot de passe...">
-        <div id="pwError" style="color:#ffb0a0;font-size:13px;min-height:18px;"></div>
-        <div class="actions">
-          <button id="validateBtn" class="primary">Valider</button>
-          <button onclick="closeModal()">Annuler</button>
-        </div>`);
-      // attach handler
-      setTimeout(()=>{
-        const btn = document.getElementById('validateBtn');
-        if (btn) btn.addEventListener('click', ()=> {
-          const val = document.getElementById('pw').value;
-          const pwd = atob(encodedPwd); // décodage Base64 -> "TEST"
-          if(val === pwd){ window.location.href="https://www.youtube.com/shorts/zSEc5Zmpbbo"; }
-          else { document.getElementById('pwError').textContent="Mot de passe incorrect"; }
-        });
-      },50);
-    }
+  if(res==="tie"){ log(`Égalité : ${names[player]} vs ${names[comp]}`); }
+  else if(res==="player"){
+    playerScore++; log(`Tu gagnes : ${names[player]} bat ${names[comp]}`); 
+    soundWin.play(); 
+    document.body.classList.add("cine-win","shake");
+    setTimeout(()=>document.body.classList.remove("cine-win","shake"),600);
+  } else {
+    computerScore++; log(`huser6666666 gagne : ${names[comp]} bat ${names[player]}`);
+    soundLose.play();
+    document.body.classList.add("cine-lose","shake");
+    setTimeout(()=>document.body.classList.remove("cine-lose","shake"),600);
   }
 
-  document.querySelectorAll('button[data-move]').forEach(btn=>{
-    btn.addEventListener('click', ()=> playRound(btn.dataset.move));
-  });
+  update();
 
-  // Séquence glyphes pour labyrinthe
-  const secretSequence=[
-    {id:"1", clicks:2},
-    {id:"3", clicks:1},
-    {id:"2", clicks:2},
-    {id:"1", clicks:1}
-  ];
-  let currentStep=0, clickCount=0;
-  document.querySelectorAll('#secretSymbols .glyph').forEach(el=>{
-    el.addEventListener('click', ()=>{
-      const expected = secretSequence[currentStep];
-      if(el.dataset.id === expected.id){
-        clickCount++;
-        if(clickCount === expected.clicks){
-          currentStep++;
-          clickCount=0;
-        }
-      } else { currentStep=0; clickCount=0; }
-      if(currentStep === secretSequence.length){
-        window.location.href="labyrinthe.html";
+  if(computerScore>=3){
+    showModal(`<h2>La destinée est cruelle...</h2><p>La prochaine fois je sors mon paff ce sera plus simple pour toi de le battre.</p><div class="actions"><button onclick="closeModal()">OK</button></div>`);
+  }
+  if(playerScore>=3){
+    const pwBase64 = "VEVTVA=="; // "TEST" en Base64
+    showModal(`
+      <h2>Tu as gagné... bravo pour cette fois</h2>
+      <p>Écris le mot de passe pour révéler la suite.</p>
+      <input id="pw" type="password" placeholder="Mot de passe...">
+      <div id="pwError" style="color:#ffb0a0;font-size:13px;min-height:18px;"></div>
+      <div class="actions">
+        <button id="validateBtn" class="primary">Valider</button>
+        <button>Annuler</button>
+      </div>`);
+  }
+}
+
+function checkPw(){
+  const val = document.getElementById('pw').value;
+  const pwBase64 = "VEVTVA=="; // TEST
+  if(btoa(val) === pwBase64){
+    window.location.href="https://www.youtube.com/shorts/zSEc5Zmpbbo";
+  } else{
+    document.getElementById('pwError').textContent="Mot de passe incorrect";
+  }
+}
+
+document.querySelectorAll('button[data-move]').forEach(btn=>{
+  btn.addEventListener('click', ()=> playRound(btn.dataset.move));
+});
+
+// Séquence glyphes pour labyrinthe
+const secretSequence=[
+  {id:"1", clicks:2},
+  {id:"3", clicks:1},
+  {id:"2", clicks:2},
+  {id:"1", clicks:1}
+];
+let currentStep=0, clickCount=0;
+document.querySelectorAll('#secretSymbols .glyph').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    const expected = secretSequence[currentStep];
+    if(el.dataset.id === expected.id){
+      clickCount++;
+      if(clickCount === expected.clicks){
+        currentStep++;
+        clickCount=0;
       }
-    });
+    } else { currentStep=0; clickCount=0; }
+    if(currentStep === secretSequence.length){
+      window.location.href="labyrinthe.html";
+    }
   });
+});
 
-  log("Que les anciens dieux te guident...");
-})();
+log("Que les anciens dieux te guident...");
 </script>
 </body>
 </html>
