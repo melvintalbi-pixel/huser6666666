@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Labyrinthe — Tombeau</title>
+<style>
+  :root{
+    --bg:#070405;
+    --wall:#0b0705;
+    --floor:#2b2218;
+    --player:#d4af37;
+    --accent:#b98a26;
+    --text:#f6eeda;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#030305,var(--bg));font-family:Inter,system-ui,Arial;color:var(--text)}
+  .wrap{max-width:1100px;margin:18px auto;padding:12px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  h1{margin:0;font-size:20px;color:var(--accent)}
+  p.lead{margin:8px 0 18px;color:#d6c8a3;font-size:14px}
+
+  .game-shell{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+
+  /* board */
+  .board {
+    --cell:38px;
+    width: calc(var(--cell) * 13 + 12px);
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.12));
+    padding:8px;
+    border-radius:12px;
+    border:1px solid rgba(255,220,140,0.04);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  }
+  .grid { display:grid; gap:4px; grid-template-columns: repeat(13, var(--cell)); grid-auto-rows: var(--cell); }
+  .cell {
+    background:var(--floor);
+    border-radius:6px;
+    position:relative;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;color:var(--text);
+    transition: background .12s, transform .08s;
+    user-select:none;
+  }
+  .cell.wall { background:var(--wall); box-shadow: inset 0 0 8px rgba(0,0,0,0.6); }
+  .cell.exit { background: linear-gradient(180deg,#12312a,#063434); border:2px solid rgba(185,138,38,0.18); }
+  .cell.player { background:linear-gradient(180deg,#f6e6b2,#d4af37); color:#080405; transform:scale(1.03); box-shadow:0 8px 20px rgba(0,0,0,0.6); }
+
+  /* controls column */
+  .controls {
+    width:280px;
+    padding:14px;
+    border-radius:12px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.12));
+    border:1px solid rgba(255,255,255,0.03);
+  }
+  .controls h3{margin:0 0 8px 0;color:var(--accent)}
+  .stat{margin:8px 0;font-size:14px}
+  .btns {display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+  .ctl { padding:12px;border-radius:8px;background:#241b15;color:var(--text);text-align:center;cursor:pointer;border:1px solid rgba(255,255,255,0.02); user-select:none;}
+  .small{font-size:13px;color:#cfc1a2;margin-top:10px}
+
+  /* mobile hint */
+  .mobile-hint{display:none;margin-top:12px;font-size:13px;color:#d6c8a3}
+  @media (max-width:920px){ .board{width:calc(var(--cell) * 11 + 12px)} .grid{ grid-template-columns: repeat(11, var(--cell)); } .mobile-hint{display:block} }
+
+  /* modal */
+  .modal-back { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); align-items:center; justify-content:center; z-index:50; }
+  .modal { background:linear-gradient(180deg,#22160f,#0f0b08); padding:18px;border-radius:10px;border:2px solid rgba(185,138,38,0.18); width:340px; color:var(--text); text-align:center }
+  .modal h2{margin:6px 0 8px 0;color:var(--accent)}
+  .linkHome { display:inline-block;margin-top:12px;padding:10px 14px;border-radius:8px;background:var(--accent);color:#0b0705;text-decoration:none;font-weight:700 }
+
+  /* bump effect for walls */
+  .bump { animation: bumpAnim 120ms linear; }
+  @keyframes bumpAnim {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    50% { transform: translateX(6px); }
+    100% { transform: translateX(0); }
+  }
+
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Labyrinthe du Tombeau</h1>
+        <p class="lead">Trouve la sortie du tombeau. Utilise les flèches ou ZQSD. Sur mobile, utilise les boutons tactiles.</p>
+      </div>
+      <div class="small">Difficulté : élevée — patience requise</div>
+    </header>
+
+    <div class="game-shell">
+      <div class="board" aria-hidden="false">
+        <div id="grid" class="grid" role="grid" aria-label="Labyrinthe"></div>
+      </div>
+
+      <aside class="controls" aria-hidden="false">
+        <h3>Commandes</h3>
+        <div class="stat">Touches: <strong>ZQSD</strong> ou <strong>flèches</strong></div>
+
+        <div class="btns" aria-hidden="false">
+          <div></div>
+          <div class="ctl" id="upBtn">▲</div>
+          <div></div>
+          <div class="ctl" id="leftBtn">◀</div>
+          <div class="ctl" id="downBtn">▼</div>
+          <div class="ctl" id="rightBtn">▶</div>
+        </div>
+
+        <div class="mobile-hint">Astuce mobile : appuie plusieurs fois pour avancer vite.</div>
+
+        <div class="small" style="margin-top:12px">Progression sauvegardée localement.</div>
+        <div style="margin-top:14px">
+          <button class="ctl" id="resetBtn">Réinitialiser</button>
+          <button class="ctl" id="homeBtn" style="margin-left:8px">Retour</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Modal shown at exit -->
+  <div id="modalBackdrop" class="modal-back" role="dialog" aria-modal="true">
+    <div class="modal" id="modal"></div>
+  </div>
+
+<script>
+/* Labyrinthe complexe 13x13
+   0 empty, 1 wall, P start, E exit
+   Use grid array of strings; rows x cols = 13 x 13
+*/
+(function(){
+  const STORAGE_KEY = "ancient_maze_v1";
+  // Hard maze layout (13x13) — intentionally twisty and narrow corridors
+  const LAYOUT = [
+    "1111111111111",
+    "1P00100001001",
+    "1010111010111",
+    "1000100010001",
+    "1110101110101",
+    "1000101000101",
+    "1011101011101",
+    "1010001000101",
+    "1010111010101",
+    "1000000010101",
+    "1110111110101",
+    "10000000000E1",
+    "1111111111111"
+  ];
+  const rows = LAYOUT.length;
+  const cols = LAYOUT[0].length;
+
+  const gridEl = document.getElementById('grid');
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  const modal = document.getElementById('modal');
+  const upBtn = document.getElementById('upBtn');
+  const downBtn = document.getElementById('downBtn');
+  const leftBtn = document.getElementById('leftBtn');
+  const rightBtn = document.getElementById('rightBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const homeBtn = document.getElementById('homeBtn');
+
+  let grid = [];
+  let player = {r:1, c:1};
+  let solved = false;
+
+  // Build grid array and find P start
+  for(let r=0;r<rows;r++){
+    grid[r] = [];
+    for(let c=0;c<cols;c++){
+      const ch = LAYOUT[r][c];
+      let type = 'empty';
+      if(ch === '1') type = 'wall';
+      if(ch === 'P'){ type='empty'; player={r,c}; }
+      if(ch === 'E') type='exit';
+      grid[r][c] = {type, r, c, el:null};
+    }
+  }
+
+  // render
+  function render(){
+    gridEl.innerHTML = "";
+    gridEl.style.gridTemplateColumns = `repeat(${cols}, var(--cell))`;
+    for(let r=0;r<rows;r++){
+      for(let c=0;c<cols;c++){
+        const cell = grid[r][c];
+        const d = document.createElement('div');
+        d.className = "cell";
+        if(cell.type === 'wall') d.classList.add('wall');
+        if(cell.type === 'exit') d.classList.add('exit');
+        d.dataset.r = r; d.dataset.c = c;
+        d.setAttribute('role','gridcell');
+        d.setAttribute('aria-label', cell.type);
+        if(cell.type === 'exit') d.innerHTML = '<span style="font-size:18px">⚱️</span>';
+        cell.el = d;
+        gridEl.appendChild(d);
+      }
+    }
+    placePlayer();
+  }
+
+  function placePlayer(){
+    document.querySelectorAll('.cell.player').forEach(x=>x.classList.remove('player'));
+    const cur = grid[player.r][player.c];
+    if(cur && cur.el) cur.el.classList.add('player');
+    // center viewport a bit (optional)
+    try {
+      const rect = cur.el.getBoundingClientRect();
+      // no automatic scrolling to avoid annoying mobile - commented out
+      // window.scrollTo({ top: rect.top - 80, behavior: 'smooth' });
+    } catch(e){}
+  }
+
+  function canMoveTo(r,c){
+    if(r<0||c<0||r>=rows||c>=cols) return false;
+    return grid[r][c].type !== 'wall';
+  }
+
+  function bumpCell(r,c){
+    const el = grid[r][c].el;
+    if(!el) return;
+    el.classList.add('bump');
+    setTimeout(()=>el.classList.remove('bump'),120);
+  }
+
+  function saveState(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({r:player.r,c:player.c}));
+    }catch(e){}
+  }
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        const s = JSON.parse(raw);
+        if(typeof s.r === 'number' && typeof s.c === 'number'){
+          // validate
+          if(s.r>=0 && s.c>=0 && s.r<rows && s.c<cols && grid[s.r][s.c].type !== 'wall'){
+            player.r = s.r; player.c = s.c;
+          }
+        }
+      }
+    }catch(e){}
+  }
+
+  function moveBy(dr,dc){
+    if(solved) return;
+    const nr = player.r + dr;
+    const nc = player.c + dc;
+    if(!canMoveTo(nr,nc)){
+      // bump current neighbor or current cell for feedback
+      bumpCell(player.r + dr < 0 ? player.r : Math.min(player.r+dr, rows-1), player.c + dc < 0 ? player.c : Math.min(player.c+dc, cols-1));
+      return;
+    }
+    player.r = nr; player.c = nc;
+    placePlayer();
+    saveState();
+    checkCell();
+  }
+
+  function checkCell(){
+    const cur = grid[player.r][player.c];
+    if(cur.type === 'exit'){
+      solved = true;
+      onSolved();
+    }
+  }
+
+  function onSolved(){
+    // Show the popup with the message requested
+    showModal(`
+      <h2>Tu as atteint la sortie</h2>
+      <p style="text-align:left;white-space:pre-wrap;">
+ecis le mot de passe est :
+ENVOI UN MESSAGE PRIVE A HUSER6666666 QUI CERTIFIE SUR L'HONNEUR QUE TU NE DONNERAS CETTE SOLUTION A PERSONNE ET IL TE DONNERA LE MOT DE PASSE
+      </p>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+        <a class="linkHome" href="index.html">Retour au site</a>
+        <button id="replayBtn" class="linkHome" style="background:#fff;color:#1b0f06">Rejouer</button>
+      </div>
+    `);
+    // attach replay handler
+    setTimeout(()=>{
+      const r = document.getElementById('replayBtn');
+      if(r) r.addEventListener('click', ()=>{ hideModal(); solved=false; resetPosition(); });
+    },50);
+  }
+
+  function showModal(html){
+    modal.innerHTML = html;
+    modalBackdrop.style.display = "flex";
+  }
+  function hideModal(){
+    modalBackdrop.style.display = "none";
+  }
+
+  // Controls
+  window.addEventListener('keydown',(e)=>{
+    const key = e.key.toLowerCase();
+    if(key === 'arrowup' || key === 'z') moveBy(-1,0);
+    if(key === 'arrowdown' || key === 's') moveBy(1,0);
+    if(key === 'arrowleft' || key === 'q') moveBy(0,-1);
+    if(key === 'arrowright' || key === 'd') moveBy(0,1);
+  });
+
+  upBtn.addEventListener('click', ()=> moveBy(-1,0));
+  downBtn.addEventListener('click', ()=> moveBy(1,0));
+  leftBtn.addEventListener('click', ()=> moveBy(0,-1));
+  rightBtn.addEventListener('click', ()=> moveBy(0,1));
+
+  resetBtn.addEventListener('click', ()=> {
+    if(confirm("Réinitialiser votre position au départ ?")){
+      resetPosition();
+    }
+  });
+  homeBtn.addEventListener('click', ()=> {
+    if(confirm("Retourner à la page d'accueil ?")) window.location.href = "index.html";
+  });
+
+  modalBackdrop.addEventListener('click',(e)=>{ if(e.target === modalBackdrop) hideModal(); });
+
+  function resetPosition(){
+    // find original P
+    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) {
+      if(LAYOUT[r][c] === 'P'){ player.r=r; player.c=c; saveState(); placePlayer(); return; }
+    }
+  }
+
+  // initialize
+  render();
+  loadState();
+  placePlayer();
+  checkCell();
+
+})();
+</script>
+</body>
+</html>
