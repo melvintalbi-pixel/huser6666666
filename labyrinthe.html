@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8" />
-<title>Labyrinthe Hardcore PC - Trap Math</title>
+<title>Labyrinthe Hardcore PC - Trap Math Obligatoire</title>
 <style>
 :root{
   --bg:#050304;
@@ -41,7 +41,7 @@ const modal = document.getElementById('modal');
 
 let maze=[], player={r:0,c:0}, trapDone=false;
 
-// Génération labyrinthe plus dur (DFS avec randomisation plus complexe)
+// Génération labyrinthe plus dur (DFS)
 function initMaze(){
   maze = Array.from({length:ROWS},()=>Array(COLS).fill('wall'));
   const stack=[[0,0]];
@@ -83,7 +83,7 @@ function showTrapPuzzle(){
   const expr = "Math.round(Math.sin(1.5707963267948966)*1e7 + Math.cos(0)*1e6 - 4333334)";
   const result = eval(expr);
   modal.innerHTML=`
-    <h2>Piège Mathématique</h2>
+    <h2>Piège Mathématique Obligatoire</h2>
     <p>Résous le calcul pour continuer :</p>
     <pre>${expr}</pre>
     <input id="trapInput" placeholder="?" />
@@ -116,11 +116,16 @@ function move(dr,dc){
   const nc=player.c+dc;
   if(nr<0||nc<0||nr>=ROWS||nc>=COLS) return;
   const type=maze[nr][nc];
-  if(type==='wall') return;
+  // Si on tente de sortir avant le trap, on bloque
+  if(type==='exit' && !trapDone){
+    alert("Tu dois d'abord résoudre le piège au centre !");
+    return;
+  }
   if(type==='trap' && !trapDone){
     showTrapPuzzle();
     return;
   }
+  if(type==='wall') return;
   player.r=nr;
   player.c=nc;
   renderMaze();
