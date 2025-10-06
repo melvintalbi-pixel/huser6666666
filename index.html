@@ -91,23 +91,28 @@
     80%{transform:translate(6px,0);}
   }
 
-  /* Glyphes secrets pour labyrinthe */
-  #secretSymbols {
-    position:fixed;
-    bottom:10px;
-    left:10px;
-    display:flex;
-    gap:6px;
-    z-index:5;
-  }
-  .glyph {
-    font-size:24px;
-    opacity:0.1;
-    cursor:pointer;
-    user-select:none;
-    transition:opacity 0.2s;
-  }
-  .glyph:hover { opacity:0.25; }
+/* Glyphes secrets pour labyrinthe */
+#secretSymbols {
+  position: fixed;
+  bottom: 20px;  /* un peu au-dessus du bord */
+  left: 20px;
+  display: flex;
+  gap: 12px;
+  z-index: 5;
+}
+
+.glyph {
+  font-size: 36px;  /* un peu plus grand */
+  opacity: 0.5;     /* plus visible */
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.glyph:hover {
+  opacity: 0.8;     /* hover plus marqué */
+  transform: scale(1.2); /* petit effet zoom au survol */
+}
 </style>
 </head>
 <body>
