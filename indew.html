@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>HUSER6666666</title>
+<style>
+  /* ... (tout ton CSS inchangé au-dessus) ... */
+
+  /* Ajout effets cinématiques */
+  body.cine-win {
+    animation: flashGreen 0.6s;
+  }
+  body.cine-lose {
+    animation: flashRed 0.6s;
+  }
+
+  @keyframes flashGreen {
+    0% { background-color:#080405; }
+    20% { background-color:#0f3; }
+    100% { background-color:#080405; }
+  }
+  @keyframes flashRed {
+    0% { background-color:#080405; }
+    20% { background-color:#f00; }
+    100% { background-color:#080405; }
+  }
+
+  .shake {
+    animation: shakeAnim 0.5s;
+  }
+  @keyframes shakeAnim {
+    0%,100% { transform: translate(0,0); }
+    20% { transform: translate(-10px,0); }
+    40% { transform: translate(10px,0); }
+    60% { transform: translate(-6px,0); }
+    80% { transform: translate(6px,0); }
+  }
+</style>
+</head>
+<body>
+  <!-- ton HTML inchangé (background, main, etc.) -->
+
+  <!-- Sons -->
+  <audio id="soundWin" src="https://actions.google.com/sounds/v1/alarms/bell_ring.ogg" preload="auto"></audio>
+  <audio id="soundLose" src="https://www.myinstants.com/media/sounds/fart-meme.mp3" preload="auto"></audio>
+
+<script>
+  // ===== Game logic =====
+  const choices = ["rock","paper","scissors"];
+  const playerScoreEl = document.getElementById('playerScore');
+  const computerScoreEl = document.getElementById('computerScore');
+  const playerChoiceEl = document.getElementById('playerChoice');
+  const computerChoiceEl = document.getElementById('computerChoice');
+  const historyList = document.getElementById('historyList');
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  const modal = document.getElementById('modal');
+
+  const soundWin = document.getElementById('soundWin');
+  const soundLose = document.getElementById('soundLose');
+
+  let playerScore = 0;
+  let computerScore = 0;
+
+  const names = { rock: "Pierre", paper: "Feuille", scissors: "Ciseaux" };
+
+  function compRandomMove() {
+    return choices[Math.floor(Math.random() * choices.length)];
+  }
+
+  function decideWinner(player, comp) {
+    if (player === comp) return "tie";
+    if (
+      (player === "rock" && comp === "scissors") ||
+      (player === "paper" && comp === "rock") ||
+      (player === "scissors" && comp === "paper")
+    ) return "player";
+    return "computer";
+  }
+
+  function updateUI() {
+    playerScoreEl.textContent = playerScore;
+    computerScoreEl.textContent = computerScore;
+  }
+
+  function appendHistory(text) {
+    const p = document.createElement('div');
+    p.style.marginTop = "6px";
+    p.textContent = text;
+    historyList.prepend(p);
+  }
+
+  function showModal(contentHtml, focusSelector) {
+    modal.innerHTML = contentHtml;
+    modalBackdrop.style.display = "flex";
+    modalBackdrop.setAttribute('aria-hidden','false');
+    setTimeout(()=>{
+      const el = focusSelector ? modal.querySelector(focusSelector) : modal.querySelector('button, input');
+      if (el) el.focus();
+    },120);
+  }
+
+  function closeModal() {
+    modalBackdrop.style.display = "none";
+    modalBackdrop.setAttribute('aria-hidden','true');
+    modal.innerHTML = "";
+    resetGame();
+  }
+
+  function resetGame() {
+    playerScore = 0; computerScore = 0;
+    updateUI();
+    playerChoiceEl.textContent = "—";
+    computerChoiceEl.textContent = "—";
+    appendHistory("Le plateau a été réinitialisé.");
+  }
+
+  document.querySelectorAll('.btn').forEach(btn=>{
+    btn.addEventListener('click', () => {
+      const move = btn.getAttribute('data-move');
+      playRound(move);
+    });
+  });
+
+  function playRound(playerMove) {
+    const computerMove = compRandomMove();
+
+    playerChoiceEl.textContent = names[playerMove];
+    computerChoiceEl.textContent = names[computerMove];
+
+    const winner = decideWinner(playerMove, computerMove);
+
+    if (winner === "tie") {
+      appendHistory(`Égalité : ${names[playerMove]} vs ${names[computerMove]}.`);
+    } else if (winner === "player") {
+      playerScore++;
+      appendHistory(`Tu gagnes : ${names[playerMove]} bat ${names[computerMove]}.`);
+      soundWin.currentTime=0; soundWin.play();
+      document.body.classList.add("cine-win","shake");
+      setTimeout(()=>document.body.classList.remove("cine-win","shake"),600);
+    } else {
+      computerScore++;
+      appendHistory(`L'Oracle gagne : ${names[computerMove]} bat ${names[playerMove]}.`);
+      soundLose.currentTime=0; soundLose.play();
+      document.body.classList.add("cine-lose","shake");
+      setTimeout(()=>document.body.classList.remove("cine-lose","shake"),600);
+    }
+
+    updateUI();
+
+    if (computerScore >= 3) {
+      showModal(`
+        <h2>La destinée est cruelle...</h2>
+        <p>La prochaine fois je sors mon paff ce sera plus simple pour toi de le battre.</p>
+        <div class="actions">
+          <button class="primary" id="okLose">D'accord</button>
+        </div>
+      `, '#okLose');
+      setTimeout(()=>{
+        const btn = document.getElementById('okLose');
+        if (btn) btn.addEventListener('click', () => closeModal());
+      },50);
+      return;
+    }
+
+    if (playerScore >= 3) {
+      showModal(`
+        <h2>Tu as gagné... bravo pour cette fois</h2>
+        <p>Écris le mot de passe pour révéler la suite.</p>
+        <div style="display:flex;gap:8px;justify-content:center;flex-direction:column;align-items:center;">
+          <input id="pw" type="password" placeholder="Mot de passe..." aria-label="Mot de passe">
+          <div id="pwError" style="color:#ffb0a0;font-size:13px;min-height:18px;"></div>
+          <div class="actions">
+            <button class="primary" id="submitPw">Valider</button>
+            <button id="cancelPw" class="btn">Annuler</button>
+          </div>
+        </div>
+      `, '#pw');
+
+      setTimeout(()=>{
+        const submit = document.getElementById('submitPw');
+        const cancel = document.getElementById('cancelPw');
+        const pwInput = document.getElementById('pw');
+        const pwError = document.getElementById('pwError');
+        const correctPassword = "TEST";
+
+        if (submit) submit.addEventListener('click', () => {
+          const val = pwInput.value || "";
+          if (val === correctPassword) {
+            const url = "https://www.youtube.com/shorts/zSEc5Zmpbbo";
+            modalBackdrop.style.display = "none";
+            window.location.href = url;
+          } else {
+            pwError.textContent = "Mot de passe incorrect. Réessaie.";
+            pwInput.focus();
+            pwInput.select();
+          }
+        });
+
+        if (cancel) cancel.addEventListener('click', () => closeModal());
+        pwInput.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') submit.click(); });
+      },50);
+      return;
+    }
+  }
+
+  modalBackdrop.addEventListener('click', (e)=>{ if (e.target === modalBackdrop) closeModal(); });
+  window.addEventListener('keydown', (e)=>{ if (e.key === 'Escape' && modalBackdrop.style.display === 'flex') closeModal(); });
+
+  appendHistory("Que les anciens dieux te guident...");
+</script>
+</body>
+</html>
