@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>HUSER6666666</title>
+<style>
+  body {
+    margin:0; padding:0;
+    background:#080405 url('https://cdn.pixabay.com/photo/2018/10/27/20/18/silhouette-3777403_1280.jpg') center/cover no-repeat;
+    font-family:"Papyrus", "Trebuchet MS", sans-serif;
+    color:#f8f4e8;
+    height:100vh;
+    display:flex; justify-content:center; align-items:center;
+  }
+  main {
+    background:rgba(20,10,5,0.85);
+    border:3px solid #a67c52;
+    border-radius:12px;
+    padding:20px;
+    text-align:center;
+    max-width:500px;
+    box-shadow:0 0 25px #5c3b1c;
+  }
+  h1 {
+    font-size:1.8em;
+    margin-bottom:15px;
+    color:#d4af37;
+    text-shadow:2px 2px 6px #000;
+  }
+  .choices {
+    display:flex; justify-content:space-around; margin:20px 0;
+  }
+  button {
+    background:#5c3b1c;
+    color:#f8f4e8;
+    border:none;
+    padding:10px 15px;
+    border-radius:8px;
+    font-size:1.2em;
+    cursor:pointer;
+    transition:transform .2s, background .3s;
+  }
+  button:hover {
+    background:#7a5228;
+    transform:scale(1.1);
+  }
+  .scores { margin:15px 0; font-size:1.2em; }
+  #history { font-size:0.9em; max-height:120px; overflow-y:auto; margin-top:10px; text-align:left; }
+
+  /* Modal */
+  .modal-backdrop {
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,0.7);
+    justify-content:center; align-items:center;
+  }
+  .modal {
+    background:#2b1b0f;
+    border:2px solid #a67c52;
+    border-radius:10px;
+    padding:20px;
+    max-width:400px;
+    text-align:center;
+    box-shadow:0 0 15px #000;
+    color:#f8f4e8;
+  }
+  .modal h2 { margin-top:0; color:#d4af37; }
+  .modal input { padding:8px; font-size:1em; border-radius:5px; border:1px solid #ccc; }
+
+  .actions { margin-top:20px; display:flex; justify-content:center; gap:10px; }
+  .primary { background:#a67c52; }
+
+  /* Cinématique */
+  body.cine-win { animation: flashGreen 0.6s; }
+  body.cine-lose { animation: flashRed 0.6s; }
+  @keyframes flashGreen {
+    0%{background-color:#080405;} 20%{background-color:#0f3;} 100%{background-color:#080405;}
+  }
+  @keyframes flashRed {
+    0%{background-color:#080405;} 20%{background-color:#f00;} 100%{background-color:#080405;}
+  }
+  .shake { animation: shakeAnim 0.5s; }
+  @keyframes shakeAnim {
+    0%,100%{transform:translate(0,0);}
+    20%{transform:translate(-10px,0);}
+    40%{transform:translate(10px,0);}
+    60%{transform:translate(-6px,0);}
+    80%{transform:translate(6px,0);}
+  }
+
+  /* Glyphes secrets (quasi invisibles) */
+  .secret-glyph{
+    color:rgba(248,244,232,0.05);
+    cursor:pointer;
+    user-select:none;
+  }
+  .secret-glyph:hover{
+    color:#f8f4e8;
+  }
+</style>
+</head>
+<body>
+  <main>
+    <h1>Affronte huser66666666</h1>
+    <div class="choices">
+      <button data-move="rock">🗿 Pierre</button>
+      <button data-move="paper">📜 Feuille</button>
+      <button data-move="scissors">⚔️ Ciseaux</button>
+    </div>
+    <div class="scores">
+      Toi : <span id="playerScore">0</span> | Oracle : <span id="computerScore">0</span>
+    </div>
+    <div>Ton choix : <span id="playerChoice">—</span></div>
+    <div>Choix Oracle : <span id="computerChoice">—</span></div>
+    <div id="history"></div>
+  </main>
+
+  <!-- Modal -->
+  <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
+    <div class="modal" id="modal"></div>
+  </div>
+
+  <!-- Sons -->
+  <audio id="soundWin" src="https://www.myinstants.com/media/sounds/anime-ahh.mp3" preload="auto"></audio>
+  <audio id="soundLose" src="https://www.myinstants.com/media/sounds/belle-proute.mp3" preload="auto"></audio>
+
+<script>
+  const choices = ["rock","paper","scissors"];
+  const playerScoreEl = document.getElementById('playerScore');
+  const computerScoreEl = document.getElementById('computerScore');
+  const playerChoiceEl = document.getElementById('playerChoice');
+  const computerChoiceEl = document.getElementById('computerChoice');
+  const historyList = document.getElementById('history');
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  const modal = document.getElementById('modal');
+  const soundWin = document.getElementById('soundWin');
+  const soundLose = document.getElementById('soundLose');
+
+  let playerScore = 0, computerScore = 0;
+  const names = { rock:"Pierre", paper:"Feuille", scissors:"Ciseaux" };
+
+  function compMove(){ return choices[Math.floor(Math.random()*3)]; }
+  function decide(p,c){
+    if(p===c) return "tie";
+    if((p==="rock"&&c==="scissors")||(p==="paper"&&c==="rock")||(p==="scissors"&&c==="paper")) return "player";
+    return "computer";
+  }
+  function update(){ playerScoreEl.textContent=playerScore; computerScoreEl.textContent=computerScore; }
+  function log(txt){ const p=document.createElement('div'); p.textContent=txt; historyList.prepend(p); }
+
+  function showModal(html){ modal.innerHTML=html; modalBackdrop.style.display="flex"; modalBackdrop.setAttribute('aria-hidden','false'); }
+  function closeModal(){ modalBackdrop.style.display="none"; modalBackdrop.setAttribute('aria-hidden','true'); modal.innerHTML=""; reset(); }
+  function reset(){ playerScore=0; computerScore=0; update(); playerChoiceEl.textContent="—"; computerChoiceEl.textContent="—"; }
+
+  function playRound(player){
+    const comp = compMove();
+    playerChoiceEl.textContent=names[player];
+    computerChoiceEl.textContent=names[comp];
+    const res = decide(player,comp);
+
+    if(res==="tie"){ log(`Égalité : ${names[player]} vs ${names[comp]}`); }
+    else if(res==="player"){ playerScore++; log(`Tu gagnes : ${names[player]} bat ${names[comp]}`); soundWin.play(); document.body.classList.add("cine-win","shake"); setTimeout(()=>document.body.classList.remove("cine-win","shake"),600); }
+    else { computerScore++; log(`huser6666666 gagne : ${names[comp]} bat ${names[player]}`); soundLose.play(); document.body.classList.add("cine-lose","shake"); setTimeout(()=>document.body.classList.remove("cine-lose","shake"),600); }
+
+    update();
+
+    if(computerScore>=3){
+      showModal(`<h2>La destinée est cruelle...</h2><p>La prochaine fois je sors mon paff ce sera plus simple pour toi de le battre.</p><div class="actions"><button onclick="closeModal()">OK</button></div>`);
+    }
+    if(playerScore>=3){
+      showModal(`
+        <h2>Tu as gagné...</h2>
+        <p>Écris le mot de passe pour révéler la suite.</p>
+        <input id="pw" type="password" placeholder="Mot de passe...">
+        <div id="pwError" style="color:#ffb0a0;font-size:13px;min-height:18px;"></div>
+        <div class="actions">
+          <button onclick="checkPw()">Valider</button>
+          <button onclick="closeModal()">Annuler</button>
+        </div>`);
+    }
+  }
+
+  function checkPw(){
+    const val=document.getElementById('pw').value;
+    if(val==="TEST"){ window.location.href="https://www.youtube.com/shorts/zSEc5Zmpbbo"; }
+    else{ document.getElementById('pwError').textContent="Mot de passe incorrect"; }
+  }
+
+  document.querySelectorAll('button[data-move]').forEach(btn=>{
+    btn.addEventListener('click', ()=> playRound(btn.dataset.move));
+  });
+
+  log("Que les anciens dieux te guident...");
+
+  /* ======= Puzzle pour accéder au labyrinthe ======= */
+  const secretSequence = ["🜂","🜃","🜄"]; // hiéroglyphes/emoji
+  let sequenceIndex = 0;
+
+  // Ajouter les glyphes subtils dans l'historique
+  secretSequence.forEach(glyph=>{
+    const div = document.createElement('div');
+    div.innerHTML = `Un ancien symbole : <span class="secret-glyph">${glyph}</span>`;
+    historyList.prepend(div);
+  });
+
+  document.addEventListener('click', e=>{
+    if(e.target.classList.contains('secret-glyph')){
+      if(e.target.textContent === secretSequence[sequenceIndex]){
+        sequenceIndex++;
+        if(sequenceIndex === secretSequence.length){
+          alert("Tu as trouvé le passage secret vers le labyrinthe !");
+          window.location.href = "labyrinthe.html"; // <-- le labyrinthe
+        }
+      } else {
+        sequenceIndex = 0; // mauvais ordre, reset
+      }
+    }
+  });
+</script>
+</body>
+</html>
