@@ -3,36 +3,36 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Labyrinthe Antique Hardcore</title>
+<title>Labyrinthe Antique</title>
 <style>
 body {
-    margin:0; padding:0;
-    background:#080405 url('https://cdn.pixabay.com/photo/2018/10/27/20/18/silhouette-3777403_1280.jpg') center/cover no-repeat;
-    font-family:"Papyrus","Trebuchet MS",sans-serif;
-    color:#f8f4e8;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-    overflow:hidden;
+  margin:0; padding:0;
+  background:#080405 url('https://cdn.pixabay.com/photo/2018/10/27/20/18/silhouette-3777403_1280.jpg') center/cover no-repeat;
+  font-family:"Papyrus","Trebuchet MS",sans-serif;
+  color:#f8f4e8;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  overflow:hidden;
 }
 #boardWrap {
-    position:relative;
-    width:95vw;
-    height:95vh;
-    max-width:1200px;
-    max-height:1200px;
-    border:3px solid #a67c52;
-    background:#120a05;
-    display:grid;
-    grid-template-columns: repeat(50, 1fr);
-    grid-template-rows: repeat(50, 1fr);
-    touch-action: none;
+  position:relative;
+  width:95vw;
+  height:95vh;
+  max-width:900px;
+  max-height:900px;
+  border:3px solid #a67c52;
+  background:#120a05;
+  display:grid;
+  grid-template-columns: repeat(20, 1fr);
+  grid-template-rows: repeat(20, 1fr);
+  touch-action: none;
 }
 .cell {
-    border:1px solid #2b1b0f;
-    box-sizing:border-box;
-    transition:background 0.2s;
+  border:1px solid #2b1b0f;
+  box-sizing:border-box;
+  transition:background 0.2s;
 }
 .cell.wall { background:#3a2615; }
 .cell.path { background:#bfa165; }
@@ -40,22 +40,22 @@ body {
 .cell.exit { background:#ffd700; }
 .cell.trap { background:#f00; }
 .modal-backdrop {
-    display:none;
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.7);
-    justify-content:center;
-    align-items:center;
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.7);
+  justify-content:center;
+  align-items:center;
 }
 .modal {
-    background:#2b1b0f;
-    border:2px solid #a67c52;
-    border-radius:10px;
-    padding:20px;
-    max-width:400px;
-    text-align:center;
-    box-shadow:0 0 15px #000;
-    color:#f8f4e8;
+  background:#2b1b0f;
+  border:2px solid #a67c52;
+  border-radius:10px;
+  padding:20px;
+  max-width:400px;
+  text-align:center;
+  box-shadow:0 0 15px #000;
+  color:#f8f4e8;
 }
 .modal h2 { color:#d4af37; }
 .modal button { padding:8px 14px; margin-top:10px; cursor:pointer; background:#a67c52; border:none; border-radius:6px; color:#0c0402; font-weight:bold;}
@@ -69,79 +69,78 @@ body {
 </div>
 
 <script>
-const ROWS=50, COLS=50;
+const ROWS=20, COLS=20;
 const boardWrap=document.getElementById('boardWrap');
 const modalBackdrop=document.getElementById('modalBackdrop');
 const modal=document.getElementById('modal');
 
 let grid=[], player={x:0,y:0};
 
-// Génération du labyrinthe avec DFS
-function generateMazeDFS() {
-    grid = Array.from({length:ROWS},()=>Array.from({length:COLS},()=> 'wall'));
-    const stack=[];
-    function shuffle(arr){ return arr.sort(()=>Math.random()-0.5); }
-    function visit(x,y){
-        grid[y][x]='path';
-        let dirs=shuffle([[0,-2],[2,0],[0,2],[-2,0]]);
-        for(let [dx,dy] of dirs){
-            const nx=x+dx, ny=y+dy;
-            if(nx>0 && ny>0 && nx<COLS && ny<ROWS && grid[ny][nx]==='wall'){
-                grid[y+dy/2][x+dx/2]='path'; // couloir intermédiaire
-                visit(nx,ny);
-            }
-        }
+// Génération simple de labyrinthe avec chemins, pièges et fausses pistes
+function generateMaze() {
+  grid = Array.from({length:ROWS},()=>Array.from({length:COLS},()=> 'wall'));
+
+  // Création d'un chemin principal
+  let x=0, y=0;
+  grid[y][x]='player';
+  player.x=x; player.y=y;
+
+  while(x<COLS-1 || y<ROWS-1){
+    if(x<COLS-1 && Math.random()<0.6) x++;
+    else if(y<ROWS-1) y++;
+    grid[y][x]='path';
+  }
+  grid[ROWS-1][COLS-1]='exit';
+
+  // Ajouter chemins secondaires et pièges
+  for(let i=0;i<ROWS;i++){
+    for(let j=0;j<COLS;j++){
+      if(grid[i][j]==='wall'){
+        if(Math.random()<0.3) grid[i][j]='path';
+        if(Math.random()<0.05) grid[i][j]='trap';
+      }
     }
-    visit(0,0);
-    // Ajouter pièges aléatoires hors du chemin principal
-    for(let i=0;i<ROWS;i++){
-        for(let j=0;j<COLS;j++){
-            if(grid[i][j]==='path' && Math.random()<0.03) grid[i][j]='trap';
-        }
-    }
-    grid[0][0]='player';
-    grid[ROWS-1][COLS-1]='exit';
-    player.x=0; player.y=0;
+  }
 }
 
 function renderDisplay(){
-    boardWrap.innerHTML='';
-    for(let y=0;y<ROWS;y++){
-        for(let x=0;x<COLS;x++){
-            const div=document.createElement('div');
-            div.className='cell '+grid[y][x];
-            boardWrap.appendChild(div);
-        }
+  boardWrap.innerHTML='';
+  for(let y=0;y<ROWS;y++){
+    for(let x=0;x<COLS;x++){
+      const div=document.createElement('div');
+      div.className='cell '+grid[y][x];
+      boardWrap.appendChild(div);
     }
-    adjustCellSize();
+  }
+  adjustCellSize();
 }
 
 function adjustCellSize(){
-    const wrapWidth=boardWrap.clientWidth;
-    const wrapHeight=boardWrap.clientHeight;
-    const sizeX=Math.floor(wrapWidth/COLS);
-    const sizeY=Math.floor(wrapHeight/ROWS);
-    const cellSize=Math.min(sizeX,sizeY);
-    document.querySelectorAll('.cell').forEach(c=>c.style.width=c.style.height=cellSize+'px');
+  const wrapWidth=boardWrap.clientWidth;
+  const wrapHeight=boardWrap.clientHeight;
+  const sizeX=Math.floor(wrapWidth/COLS);
+  const sizeY=Math.floor(wrapHeight/ROWS);
+  const cellSize=Math.min(sizeX,sizeY);
+  document.querySelectorAll('.cell').forEach(c=>c.style.width=c.style.height=cellSize+'px');
 }
 
 function movePlayer(dx,dy){
-    const nx=player.x+dx;
-    const ny=player.y+dy;
-    if(nx<0||ny<0||nx>=COLS||ny>=ROWS) return;
-    const target=grid[ny][nx];
-    if(target==='wall') return;
-    if(target==='trap') alert('Tu as touché un piège ! Reviens en arrière !');
-    if(target==='exit') return showModal();
-    grid[player.y][player.x]='path';
-    grid[ny][nx]='player';
-    player.x=nx; player.y=ny;
-    renderDisplay();
+  const nx=player.x+dx;
+  const ny=player.y+dy;
+  if(nx<0||ny<0||nx>=COLS||ny>=ROWS) return;
+  const target=grid[ny][nx];
+  if(target==='wall') return;
+  if(target==='trap') alert('Tu as touché un piège ! Reviens en arrière !');
+  if(target==='exit') return showModal();
+  grid[player.y][player.x]='path';
+  grid[ny][nx]='player';
+  player.x=nx; player.y=ny;
+  renderDisplay();
 }
 
 function showModal(){
-    modal.innerHTML='<h2>Félicitations !</h2><p>Le mot de passe est : ENVOI UN MESSAGE PRIVE A HUSER6666666 QUI CERTIFIE SUR L’HONNEUR QUE TU NE DONNERAS CETTE SOLUTION A PERSONNE ET IL TE DONNERA LE MOT DE PASSE.</p><button onclick="closeModal()">Fermer</button>';
-    modalBackdrop.style.display='flex';
+  modal.innerHTML='<h2>Félicitations !</h2><p>Le mot de passe est : ENVOI UN MESSAGE PRIVE A HUSER6666666 QUI CERTIFIE SUR L’HONNEUR QUE TU NE DONNERAS CETTE SOLUTION A PERSONNE ET IL TE DONNERA LE MOT DE PASSE.</p><button onclick="closeModal()">Fermer</button>';
+  modalBackdrop.style.display='flex';
 }
 
 function closeModal(){ modalBackdrop.style.display='none'; }
@@ -171,7 +170,7 @@ boardWrap.addEventListener('touchend',e=>{
     touchStart=null;
 });
 
-generateMazeDFS();
+generateMaze();
 renderDisplay();
 window.addEventListener('resize', adjustCellSize);
 </script>
