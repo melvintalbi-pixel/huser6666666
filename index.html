@@ -115,13 +115,13 @@
     appendHistory("Le plateau a été réinitialisé.");
   }
 
-  document.querySelectorAll('.btn').forEach(btn=>{
-    btn.addEventListener('click', () => {
-      const move = btn.getAttribute('data-move');
-      playRound(move);
-    });
+document.querySelectorAll('button[data-move]').forEach(btn=>{
+  btn.addEventListener('click', () => {
+    const move = btn.getAttribute('data-move');
+    playRound(move);
   });
-
+});
+  
   function playRound(playerMove) {
     const computerMove = compRandomMove();
 
