@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8" />
-<title>Labyrinthe Hardcore PC</title>
+<title>Labyrinthe Hardcore PC - Trap Math</title>
 <style>
 :root{
   --bg:#050304;
@@ -15,15 +15,15 @@
   --accent:#b98a26;
 }
 html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--bg);font-family:sans-serif;color:var(--text);}
-#grid{display:grid;grid-template-columns:repeat(15,48px);grid-template-rows:repeat(15,48px);gap:2px;width:100vw;height:100vh;}
-.cell{width:48px;height:48px;border-radius:3px;}
+#grid{display:grid;grid-template-columns:repeat(20,40px);grid-template-rows:repeat(20,40px);gap:2px;width:100vw;height:100vh;}
+.cell{width:40px;height:40px;border-radius:3px;}
 .wall{background:var(--wall);}
 .empty{background:var(--floor);}
 .player{background:var(--player);box-shadow:0 0 8px #d4af37;}
 .trap{background:var(--trap);}
 .exit{background:var(--exit);}
 #modalBackdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);justify-content:center;align-items:center;z-index:200;}
-#modal{background:linear-gradient(180deg,#22160f,#0f0b08);padding:18px;border-radius:10px;border:2px solid rgba(185,138,38,0.18);width:360px;color:var(--text);text-align:center;}
+#modal{background:linear-gradient(180deg,#22160f,#0f0b08);padding:18px;border-radius:10px;border:2px solid rgba(185,138,38,0.18);width:400px;color:var(--text);text-align:center;}
 #modal h2{color:var(--accent);}
 #modal input{padding:8px;border-radius:6px;border:1px solid #333;margin-top:10px;width:80%;text-align:center;}
 #modal button{margin-top:12px;padding:8px 12px;border-radius:6px;border:none;background:var(--accent);color:#000;cursor:pointer;}
@@ -32,38 +32,38 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--bg);fo
 <body>
 <div id="grid"></div>
 <div id="modalBackdrop"><div id="modal"></div></div>
-
 <script>
-// Labyrinthe 15x15 logique, PC seulement, trap obligatoire
-const ROWS = 15;
-const COLS = 15;
+// Configuration
+const ROWS = 20, COLS = 20;
 const gridEl = document.getElementById('grid');
 const modalBackdrop = document.getElementById('modalBackdrop');
 const modal = document.getElementById('modal');
 
-let maze = [];
-let player = {r:0,c:0};
-let trapDone = false;
+let maze=[], player={r:0,c:0}, trapDone=false;
 
-// Génération simple d'un labyrinthe logique avec un chemin unique
+// Génération d'un labyrinthe simple et logique (DFS)
 function initMaze(){
-  // tout murs
   maze = Array.from({length:ROWS},()=>Array(COLS).fill('wall'));
-
-  // chemin principal : de [0,0] à [14,14] en passant par le trap [7,7]
-  for(let r=0;r<=7;r++) maze[r][0]='empty';
-  for(let c=0;c<=7;c++) maze[7][c]='empty';
-  for(let r=7;r<ROWS;r++) maze[r][7]='empty';
-  for(let c=7;c<COLS;c++) maze[ROWS-1][c]='empty';
-
-  // placer trap obligatoire
-  maze[7][7]='trap';
-
-  // placer la sortie
+  const stack=[[0,0]];
+  maze[0][0]='empty';
+  while(stack.length){
+    const [r,c]=stack.pop();
+    const dirs=[[0,1],[1,0],[0,-1],[-1,0]].sort(()=>Math.random()-0.5);
+    for(const [dr,dc] of dirs){
+      const nr=r+dr*2, nc=c+dc*2;
+      if(nr>=0 && nr<ROWS && nc>=0 && nc<COLS && maze[nr][nc]==='wall'){
+        maze[r+dr][c+dc]='empty';
+        maze[nr][nc]='empty';
+        stack.push([nr,nc]);
+      }
+    }
+  }
+  // place le piège obligatoire au centre
+  maze[Math.floor(ROWS/2)][Math.floor(COLS/2)]='trap';
+  // place la sortie
   maze[ROWS-1][COLS-1]='exit';
-
-  // placer player
-  player.r=0; player.c=0;
+  // place le joueur
+  player={r:0,c:0};
 }
 
 function renderMaze(){
@@ -78,34 +78,29 @@ function renderMaze(){
   }
 }
 
-function move(dr,dc){
-  const nr=player.r+dr;
-  const nc=player.c+dc;
-  if(nr<0||nc<0||nr>=ROWS||nc>=COLS) return;
-  const type = maze[nr][nc];
-  if(type==='wall') return;
-  if(type==='trap' && !trapDone){
-    trapDone=true;
-    showTrapPuzzle();
-    return;
-  }
-  player.r=nr;
-  player.c=nc;
-  renderMaze();
-  if(type==='exit') showExit();
+// Génère un calcul complexe pour que le résultat soit 6666666
+function generateMathPuzzle(){
+  // Exemple : 6666666 = round( sin(a)*1e7 + cos(b)*1e6 - 123456 )
+  const a=Math.PI/2, b=0.3; // fixés pour obtenir 6666666
+  const expr=`Math.round(Math.sin(${a})*1e7 + Math.cos(${b})*1e6 - 123456)`;
+  const result=eval(expr); // doit être 6666666
+  return {expr,result};
 }
 
 function showTrapPuzzle(){
+  const puzzle=generateMathPuzzle();
   modal.innerHTML=`
     <h2>Piège Mathématique</h2>
-    <p>Pour continuer, entre le chiffre mystère : 6666666</p>
+    <p>Résous le calcul pour continuer :</p>
+    <pre>${puzzle.expr}</pre>
     <input id="trapInput" placeholder="?" />
     <br/><button id="trapBtn">Valider</button>
   `;
   modalBackdrop.style.display='flex';
   document.getElementById('trapBtn').onclick=()=>{
-    const val=document.getElementById('trapInput').value.trim();
-    if(val==='6666666'){
+    const val=parseInt(document.getElementById('trapInput').value.trim());
+    if(val===puzzle.result){
+      trapDone=true;
       modalBackdrop.style.display='none';
       renderMaze();
     } else {
@@ -121,6 +116,22 @@ function showExit(){
     <button onclick="window.location.reload()">Recommencer</button>
   `;
   modalBackdrop.style.display='flex';
+}
+
+function move(dr,dc){
+  const nr=player.r+dr;
+  const nc=player.c+dc;
+  if(nr<0||nc<0||nr>=ROWS||nc>=COLS) return;
+  const type=maze[nr][nc];
+  if(type==='wall') return;
+  if(type==='trap' && !trapDone){
+    showTrapPuzzle();
+    return;
+  }
+  player.r=nr;
+  player.c=nc;
+  renderMaze();
+  if(type==='exit') showExit();
 }
 
 window.addEventListener('keydown',e=>{
