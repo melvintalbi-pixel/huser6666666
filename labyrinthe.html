@@ -147,4 +147,169 @@
   const homeBtn = document.getElementById('homeBtn');
   const boardWrap = document.getElementById('boardWrap');
 
-  let grid=[], player={r:1,c:1}, displayOffsetR=1, displayOffsetC=1,
+  let grid=[], player={r:1,c:1}, displayOffsetR=1, displayOffsetC=1, solved=false;
+  const doorPuzzles={};
+
+  function initGrid(){ grid=Array.from({length:ROWS},()=>Array.from({length:COLS},()=>({type:'wall',el:null}))); }
+
+  function generateMaze(){
+    initGrid();
+    const stack=[[1,1]]; grid[1][1].type='empty';
+    const dirs=[[0,2],[0,-2],[2,0],[-2,0]];
+    while(stack.length){
+      const [r,c]=stack[stack.length-1];
+      const neighbors=[];
+      for(const [dr,dc] of dirs){
+        const nr=r+dr,nc=c+dc;
+        if(nr>0&&nr<ROWS-1&&nc>0&&nc<COLS-1&&grid[nr][nc].type==='wall') neighbors.push([nr,nc,dr,dc]);
+      }
+      if(neighbors.length===0){stack.pop();}
+      else{
+        const [nr,nc,dr,dc]=neighbors[Math.floor(Math.random()*neighbors.length)];
+        grid[r+dr/2][c+dc/2].type='empty';
+        grid[nr][nc].type='empty';
+        stack.push([nr,nc]);
+      }
+    }
+  }
+
+  function shuffleArray(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+  function scatterHazards(){
+    for(const k in doorPuzzles) delete doorPuzzles[k];
+    const candidates=[];
+    for(let r=1;r<ROWS-1;r++) for(let c=1;c<COLS-1;c++){
+      if(grid[r][c].type==='empty' && !(Math.abs(r-1)+Math.abs(c-1)<5)) candidates.push([r,c]);
+    }
+    shuffleArray(candidates);
+
+    const trapCount=Math.max(30, Math.floor(candidates.length*0.04));
+    for(let i=0;i<trapCount;i++){const [r,c]=candidates[i];grid[r][c].type='trap';}
+
+    let doorPlaced=0,idxCand=trapCount;
+    while(doorPlaced<8 && idxCand<candidates.length){
+      const [r,c]=candidates[idxCand++];
+      let ok=true;
+      for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){
+        const rr=r+dr,cc=c+dc;if(rr>0&&rr<ROWS&&cc>0&&cc<COLS) if(grid[rr][cc].type==='door'||grid[rr][cc].type==='trap') ok=false;
+      }
+      if(!ok) continue;
+      grid[r][c].type='door'; doorPuzzles[`${r},${c}`]=generateDoorPuzzle(`${r},${c}`); doorPlaced++;
+    }
+
+    const fakeCount=4;
+    for(let i=0;i<fakeCount && idxCand<candidates.length;i++){
+      const [r,c]=candidates[idxCand++];
+      if(grid[r][c].type==='empty') grid[r][c].type='fakeexit';
+    }
+  }
+
+  function generateDoorPuzzle(key){
+    const types=['symbols','sequence','math'];
+    const t=types[Math.floor(Math.random()*types.length)];
+    if(t==='symbols'){
+      const icons=['𓂀','𓃰','𓆣','𓂓','𓆩','𓄿'];
+      shuffleArray(icons);
+      const order=icons.slice(0,4), solution=order.slice().reverse();
+      return {type:'symbols',icons:order,solution};
+    } else if(t==='sequence'){
+      const patterns=[['up','up','down','up'],['left','right','left'],['up','left','down','right']];
+      const pat=patterns[Math.floor(Math.random()*patterns.length)];
+      return {type:'sequence',pattern:pat};
+    } else{
+      const a=Math.floor(Math.random()*8)+2,b=Math.floor(Math.random()*8)+2,op=Math.random()<0.5?'+':'×';
+      return {type:'math',prompt:`Quel est ${a} ${op} ${b} ?`,solution:String(op==='+'?a+b:a*b)};
+    }
+  }
+
+  function renderDisplay(){
+    gridEl.innerHTML='';
+    const frag=document.createDocumentFragment();
+    for(let dr=0;dr<DISPLAY_ROWS;dr++){
+      for(let dc=0;dc<DISPLAY_COLS;dc++){
+        const r=displayOffsetR+dr,c=displayOffsetC+dc;
+        const cell=document.createElement('div');cell.className='cell';
+        const g=grid[r][c];if(!g){cell.classList.add('wall');}else{cell.dataset.r=r;cell.dataset.c=c;
+        if(g.type==='wall')cell.classList.add('wall');else if(g.type==='empty')cell.classList.add('empty');else if(g.type==='trap'){cell.classList.add('trap');cell.title='Piège';}
+        else if(g.type==='door'){cell.classList.add('door');cell.title='Porte verrouillée';}else if(g.type==='fakeexit'){cell.classList.add('fakeexit');cell.title='Fausse sortie';}
+        else if(g.type==='exit'){cell.classList.add('exit');cell.title='Sortie';}else cell.classList.add('empty'); g.el=cell;}
+        frag.appendChild(cell);
+      }
+    }
+    gridEl.appendChild(frag); placePlayer();
+  }
+
+  function placePlayer(){
+    document.querySelectorAll('.cell.player').forEach(x=>x.classList.remove('player'));
+    adjustCropForPlayer();
+    const dr=player.r-displayOffsetR,dc=player.c-displayOffsetC;
+    if(dr>=0&&dr<DISPLAY_ROWS&&dc>=0&&dc<DISPLAY_COLS){
+      const idx=dr*DISPLAY_COLS+dc,el=gridEl.children[idx];
+      if(el) el.classList.add('player');
+      try{
+        const rect=el.getBoundingClientRect(),wrapRect=boardWrap.getBoundingClientRect();
+        if(rect.left<wrapRect.left||rect.right>wrapRect.right||rect.top<wrapRect.top||rect.bottom>wrapRect.bottom){
+          boardWrap.scrollTo({left:el.offsetLeft-(boardWrap.clientWidth/2)+(CELL_SIZE/2),top:el.offsetTop-(boardWrap.clientHeight/2)+(CELL_SIZE/2),behavior:'smooth'});
+        }
+      }catch(e){}
+    }
+  }
+
+  function adjustCropForPlayer(){
+    const margin=6;let changed=false;
+    const dr=player.r-displayOffsetR,dc=player.c-displayOffsetC;
+    if(dr<margin&&displayOffsetR>1){displayOffsetR=Math.max(1,player.r-margin);changed=true;}
+    if(dr>DISPLAY_ROWS-margin-1&&displayOffsetR<ROWS-DISPLAY_ROWS-1){displayOffsetR=Math.min(ROWS-DISPLAY_ROWS-1,player.r-(DISPLAY_ROWS-margin-1));changed=true;}
+    if(dc<margin&&displayOffsetC>1){displayOffsetC=Math.max(1,player.c-margin);changed=true;}
+    if(dc>DISPLAY_COLS-margin-1&&displayOffsetC<COLS-DISPLAY_COLS-1){displayOffsetC=Math.min(COLS-DISPLAY_COLS-1,player.c-(DISPLAY_COLS-margin-1));changed=true;}
+    if(changed) renderDisplay();
+  }
+
+  function placeStart(){player.r=1;player.c=1;}
+
+  function placeExit(){for(let r=ROWS-2;r>0;r--)for(let c=COLS-2;c>0;c--)if(grid[r][c].type==='empty'){grid[r][c].type='exit';return;}}
+
+  function saveState(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({r:player.r,c:player.c,offsetR:displayOffsetR,offsetC:displayOffsetC}));}catch(e){}}
+  function loadState(){try{const s=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');if(s.r!==undefined&&s.c!==undefined){player.r=s.r;player.c=s.c;displayOffsetR=s.offsetR||displayOffsetR;displayOffsetC=s.offsetC||displayOffsetC;}}catch(e){}}
+
+  function bump(r,c){const g=grid[r][c];if(g&&g.el){g.el.classList.add('bump');setTimeout(()=>g.el&&g.el.classList.remove('bump'),120);}}
+
+  function canMoveTo(r,c){if(r<1||c<1||r>=ROWS-1||c>=COLS-1)return false;return grid[r][c].type!=='wall';}
+  function moveBy(dr,dc){if(solved)return;const nr=player.r+dr,nc=player.c+dc;if(!canMoveTo(nr,nc)){bump(nr,nc);return;}player.r=nr;player.c=nc;placePlayer();saveState();handleCell(nr,nc);}
+
+  function handleCell(r,c){const t=grid[r][c].type;if(t==='trap'){showModal(`<h2>Piège !</h2><p>Un mécanisme ancien te renvoie à l'entrée...</p><div style="display:flex;gap:8px;justify-content:center;margin-top:12px"><button id="okTrap" class="ctl">OK</button></div>`);setTimeout(()=>{document.getElementById('okTrap')?.addEventListener('click',()=>{hideModal();resetToStart();});},50);}
+    else if(t==='door'){const key=`${r},${c}`,puzzle=doorPuzzles[key];if(puzzle&&!puzzle.solved) openDoorPuzzle(key,puzzle); else{grid[r][c].type='empty';renderDisplay();placePlayer();}}
+    else if(t==='fakeexit'){showModal(`<h2>Fausses glyphes</h2><p>La sortie est une illusion...</p><div style="display:flex;gap:8px;justify-content:center;margin-top:12px"><button id="okFake" class="ctl">OK</button></div>`);setTimeout(()=>{document.getElementById('okFake')?.addEventListener('click',()=>{hideModal();teleportRandom();});},50);}
+    else if(t==='exit'){solved=true;showModal(`<h2>Tu as atteint la sortie</h2><p>ecis le mot de passe est :\n\nENVOIE UN MESSAGE PRIVE A HUSER6666666 QUI CERTIFIE SUR L'HONNEUR QUE TU NE DONNERAS CETTE SOLUTION A PERSONNE ET IL TE DONNERA LE MOT DE PASSE</p><div style="display:flex;gap:8px;justify-content:center;margin-top:12px"><a class="ctl" href="index.html">Retour</a> <button id="replay" class="ctl">Recommencer</button></div>`);setTimeout(()=>{document.getElementById('replay')?.addEventListener('click',()=>{hideModal();solved=false;resetToStart();});},50);}}
+
+  function resetToStart(){player.r=1;player.c=1;displayOffsetR=1;displayOffsetC=1;saveState();renderDisplay();}
+  function teleportRandom(){const empties=[];for(let r=1;r<ROWS-1;r++)for(let c=1;c<COLS-1;c++)if(grid[r][c].type==='empty')empties.push([r,c]);if(!empties.length)return resetToStart();const [r,c]=empties[Math.floor(Math.random()*empties.length)];player.r=r;player.c=c;saveState();renderDisplay();}
+
+  function openDoorPuzzle(key,puzzle){if(!puzzle)return;
+    if(puzzle.type==='symbols'){
+      const shuffled=shuffleArray(puzzle.icons.slice());
+      showModal(`<h2>Porte scellée</h2><p>Clique les symboles dans le bon ordre.</p><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:8px">${shuffled.map(s=>`<button class="ctl symbolBtn">${s}</button>`).join('')}</div>`);
+      let seq=[];const buttons=document.querySelectorAll('.symbolBtn');buttons.forEach(b=>b.addEventListener('click',()=>{seq.push(b.textContent);if(seq.length===puzzle.solution.length){if(seq.join('')===puzzle.solution.join('')){puzzle.solved=true;hideModal();grid[player.r][player.c].type='empty';renderDisplay();placePlayer();}else{seq=[];alert('Mauvais ordre !')}};}));
+    } else if(puzzle.type==='math'){showModal(`<h2>Porte mathématique</h2><p>${puzzle.prompt}</p><input id="doorInput" type="text" style="width:60px; margin-top:6px;"><div style="margin-top:8px"><button id="doorOk" class="ctl">Valider</button></div>`);document.getElementById('doorOk')?.addEventListener('click',()=>{const val=document.getElementById('doorInput').value.trim();if(val===puzzle.solution){puzzle.solved=true;hideModal();grid[player.r][player.c].type='empty';renderDisplay();placePlayer();}else alert('Incorrect');});}
+    else if(puzzle.type==='sequence'){showModal(`<h2>Porte séquence</h2><p>Clique dans cet ordre : ${puzzle.pattern.join(', ')}</p><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${puzzle.pattern.map(d=>`<button class="ctl seqBtn">${d}</button>`).join('')}</div>`);let seq=[];document.querySelectorAll('.seqBtn').forEach(b=>b.addEventListener('click',()=>{seq.push(b.textContent);if(seq.length===puzzle.pattern.length){if(seq.join(',')===puzzle.pattern.join(',')){puzzle.solved=true;hideModal();grid[player.r][player.c].type='empty';renderDisplay();placePlayer();}else{seq=[];alert('Mauvaise séquence');}}}));}
+  }
+
+  function showModal(html){modal.innerHTML=html;modalBackdrop.style.display='flex';modalBackdrop.setAttribute('aria-hidden','false');}
+  function hideModal(){modalBackdrop.style.display='none';modalBackdrop.setAttribute('aria-hidden','true');}
+
+  document.addEventListener('keydown',e=>{switch(e.key.toLowerCase()){case 'arrowup':case 'z':moveBy(-1,0);break;case 'arrowdown':case 's':moveBy(1,0);break;case 'arrowleft':case 'q':moveBy(0,-1);break;case 'arrowright':case 'd':moveBy(0,1);break;}});
+
+  upBtn.addEventListener('click',()=>moveBy(-1,0));
+  downBtn.addEventListener('click',()=>moveBy(1,0));
+  leftBtn.addEventListener('click',()=>moveBy(0,-1));
+  rightBtn.addEventListener('click',()=>moveBy(0,1));
+  resetBtn.addEventListener('click',()=>{solved=false;generateMaze();scatterHazards();placeStart();placeExit();renderDisplay();});
+  homeBtn.addEventListener('click',()=>location.href='index.html');
+  modalBackdrop.addEventListener('click',()=>hideModal());
+
+  // initialisation
+  generateMaze();scatterHazards();placeStart();placeExit();loadState();renderDisplay();
+})();
+</script>
+</body>
+</html>
