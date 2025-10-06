@@ -147,10 +147,10 @@
 */
 
 (function(){
-  const ROWS = 51; // internal odd-based maze generation
-  const COLS = 51;
-  const DISPLAY_ROWS = 50; // what user sees (we'll crop one row/col)
-  const DISPLAY_COLS = 50;
+  const ROWS = 41; // internal odd-based maze generation
+  const COLS = 41;
+  const DISPLAY_ROWS = 40; // what user sees (we'll crop one row/col)
+  const DISPLAY_COLS = 40;
 
   const CELL_SIZE = 18; // CSS set earlier
   const STORAGE_KEY = "hardcore_maze_state_v2";
