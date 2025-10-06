@@ -15,8 +15,8 @@
   --accent:#b98a26;
 }
 html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--bg);font-family:sans-serif;color:var(--text);}
-#grid{display:grid;grid-template-columns:repeat(20,40px);grid-template-rows:repeat(20,40px);gap:2px;width:100vw;height:100vh;}
-.cell{width:40px;height:40px;border-radius:3px;}
+#grid{display:grid;grid-template-columns:repeat(30,30px);grid-template-rows:repeat(30,30px);gap:2px;width:100vw;height:100vh;}
+.cell{width:30px;height:30px;border-radius:3px;}
 .wall{background:var(--wall);}
 .empty{background:var(--floor);}
 .player{background:var(--player);box-shadow:0 0 8px #d4af37;}
@@ -34,35 +34,36 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--bg);fo
 <div id="modalBackdrop"><div id="modal"></div></div>
 <script>
 // Configuration
-const ROWS = 20, COLS = 20;
+const ROWS = 30, COLS = 30;
 const gridEl = document.getElementById('grid');
 const modalBackdrop = document.getElementById('modalBackdrop');
 const modal = document.getElementById('modal');
 
 let maze=[], player={r:0,c:0}, trapDone=false;
 
-// Génération d'un labyrinthe simple et logique (DFS)
+// Génération labyrinthe plus dur (DFS avec randomisation plus complexe)
 function initMaze(){
   maze = Array.from({length:ROWS},()=>Array(COLS).fill('wall'));
   const stack=[[0,0]];
   maze[0][0]='empty';
   while(stack.length){
     const [r,c]=stack.pop();
-    const dirs=[[0,1],[1,0],[0,-1],[-1,0]].sort(()=>Math.random()-0.5);
+    let dirs=[[0,1],[1,0],[0,-1],[-1,0]];
+    dirs.sort(()=>Math.random()-0.5);
     for(const [dr,dc] of dirs){
       const nr=r+dr*2, nc=c+dc*2;
-      if(nr>=0 && nr<ROWS && nc>=0 && nc<COLS && maze[nr][nc]==='wall'){
+      if(nr>=0 && nc>=0 && nr<ROWS && nc<COLS && maze[nr][nc]==='wall'){
         maze[r+dr][c+dc]='empty';
         maze[nr][nc]='empty';
         stack.push([nr,nc]);
       }
     }
   }
-  // place le piège obligatoire au centre
+  // piège obligatoire au centre
   maze[Math.floor(ROWS/2)][Math.floor(COLS/2)]='trap';
-  // place la sortie
+  // sortie
   maze[ROWS-1][COLS-1]='exit';
-  // place le joueur
+  // joueur
   player={r:0,c:0};
 }
 
@@ -78,28 +79,20 @@ function renderMaze(){
   }
 }
 
-// Génère un calcul complexe pour que le résultat soit 6666666
-function generateMathPuzzle(){
-  // Exemple : 6666666 = round( sin(a)*1e7 + cos(b)*1e6 - 123456 )
-  const a=Math.PI/2, b=0.3; // fixés pour obtenir 6666666
-  const expr=`Math.round(Math.sin(${a})*1e7 + Math.cos(${b})*1e6 - 123456)`;
-  const result=eval(expr); // doit être 6666666
-  return {expr,result};
-}
-
 function showTrapPuzzle(){
-  const puzzle=generateMathPuzzle();
+  const expr = "Math.round(Math.sin(1.5707963267948966)*1e7 + Math.cos(0)*1e6 - 4333334)";
+  const result = eval(expr);
   modal.innerHTML=`
     <h2>Piège Mathématique</h2>
     <p>Résous le calcul pour continuer :</p>
-    <pre>${puzzle.expr}</pre>
+    <pre>${expr}</pre>
     <input id="trapInput" placeholder="?" />
     <br/><button id="trapBtn">Valider</button>
   `;
   modalBackdrop.style.display='flex';
   document.getElementById('trapBtn').onclick=()=>{
     const val=parseInt(document.getElementById('trapInput').value.trim());
-    if(val===puzzle.result){
+    if(val===result){
       trapDone=true;
       modalBackdrop.style.display='none';
       renderMaze();
