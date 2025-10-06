@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>HUSER6666666</title>
+<style>
+  body {margin:0; padding:0; background:#080405 url('https://cdn.pixabay.com/photo/2018/10/27/20/18/silhouette-3777403_1280.jpg') center/cover no-repeat; font-family:"Papyrus","Trebuchet MS",sans-serif; color:#f8f4e8; height:100vh; display:flex; justify-content:center; align-items:center; position:relative;}
+  main {background:rgba(20,10,5,0.85); border:3px solid #a67c52; border-radius:12px; padding:20px; text-align:center; max-width:500px; box-shadow:0 0 25px #5c3b1c; z-index:2;}
+  h1 {font-size:1.8em; margin-bottom:15px; color:#d4af37; text-shadow:2px 2px 6px #000;}
+  .choices {display:flex; justify-content:space-around; margin:20px 0;}
+  button {background:#5c3b1c; color:#f8f4e8; border:none; padding:10px 15px; border-radius:8px; font-size:1.2em; cursor:pointer; transition:transform .2s, background .3s;}
+  button:hover {background:#7a5228; transform:scale(1.1);}
+  .scores { margin:15px 0; font-size:1.2em; }
+  #history { font-size:0.9em; max-height:120px; overflow-y:auto; margin-top:10px; text-align:left; border:1px dashed rgba(248,244,232,0.2); padding:4px; }
+  .modal-backdrop {display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:10;}
+  .modal {background:#2b1b0f; border:2px solid #a67c52; border-radius:10px; padding:20px; max-width:400px; text-align:center; box-shadow:0 0 15px #000; color:#f8f4e8;}
+  .modal h2 {margin-top:0; color:#d4af37;}
+  .modal input {padding:8px; font-size:1em; border-radius:5px; border:1px solid #ccc;}
+  .actions {margin-top:20px; display:flex; justify-content:center; gap:10px;}
+  .primary {background:#a67c52; color:#0c0402; cursor:pointer;}
+</style>
+</head>
+<body>
+
+<main>
+  <h1>Affronte huser66666666</h1>
+  <div class="choices">
+    <button data-move="rock">🗿 Pierre</button>
+    <button data-move="paper">📜 Feuille</button>
+    <button data-move="scissors">⚔️ Ciseaux</button>
+  </div>
+  <div class="scores">
+    Toi : <span id="playerScore">0</span> | Oracle : <span id="computerScore">0</span>
+  </div>
+  <div>Ton choix : <span id="playerChoice">—</span></div>
+  <div>Choix Oracle : <span id="computerChoice">—</span></div>
+  <div id="history">Que les anciens dieux te guident...</div>
+</main>
+
+<div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
+  <div class="modal" id="modal"></div>
+</div>
+
+<audio id="soundWin" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" preload="auto" loop autoplay></audio>
+<audio id="soundLose" src="https://www.myinstants.com/media/sounds/belle-proute.mp3" preload="auto"></audio>
+
+<script>
+  // 🔹 Bloquer mobiles
+  if (/Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+    document.body.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;font-family:Arial;color:#fff;background:#000;">
+        <h1>Merci d'utiliser un ordinateur pour cette expérience</h1>
+      </div>`;
+    throw new Error("Bloqué sur mobile");
+  }
+
+  const choices = ["rock","paper","scissors"];
+  const playerScoreEl = document.getElementById('playerScore');
+  const computerScoreEl = document.getElementById('computerScore');
+  const playerChoiceEl = document.getElementById('playerChoice');
+  const computerChoiceEl = document.getElementById('computerChoice');
+  const historyList = document.getElementById('history');
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  const modal = document.getElementById('modal');
+  const soundWin = document.getElementById('soundWin');
+  const soundLose = document.getElementById('soundLose');
+
+  let playerScore=0, computerScore=0;
+  const names={rock:"Pierre", paper:"Feuille", scissors:"Ciseaux"};
+
+  function compMove(){ return choices[Math.floor(Math.random()*3)]; }
+  function decide(p,c){
+    if(p===c) return "tie";
+    if((p==="rock"&&c==="scissors")||(p==="paper"&&c==="rock")||(p==="scissors"&&c==="paper")) return "player";
+    return "computer";
+  }
+  function update(){ playerScoreEl.textContent=playerScore; computerScoreEl.textContent=computerScore; }
+  function log(txt){ const p=document.createElement('div'); p.textContent=txt; historyList.prepend(p); }
+
+  function showModal(html){ modal.innerHTML=html; modalBackdrop.style.display="flex"; modalBackdrop.setAttribute('aria-hidden','false'); }
+  function closeModal(){ modalBackdrop.style.display="none"; modalBackdrop.setAttribute('aria-hidden','true'); modal.innerHTML=""; reset(); }
+  function reset(){ playerScore=0; computerScore=0; update(); playerChoiceEl.textContent="—"; computerChoiceEl.textContent="—"; }
+
+  function playRound(player){
+    const comp=compMove();
+    playerChoiceEl.textContent=names[player];
+    computerChoiceEl.textContent=names[comp];
+    const res=decide(player,comp);
+
+    if(res==="tie"){ log(`Égalité : ${names[player]} vs ${names[comp]}`); }
+    else if(res==="player"){
+      playerScore++; log(`Tu gagnes : ${names[player]} bat ${names[comp]}`); 
+      soundWin.play(); 
+    } else {
+      computerScore++; log(`huser6666666 gagne : ${names[comp]} bat ${names[player]}`);
+      soundLose.play();
+    }
+
+    update();
+
+    if(playerScore>=3){
+      // 🔹 Mot de passe obfusqué
+      const encodedPwd = "V0hVRF9IT1NUT19WSVBfNzY2NjY2"; // Base64 encodé (ex: WHUD_HOSTO_VIP_7666666)
+      showModal(`
+        <h2>Tu as gagné... bravo pour cette fois</h2>
+        <p>Écris le mot de passe pour révéler la suite.</p>
+        <input id="pw" type="password" placeholder="Mot de passe...">
+        <div id="pwError" style="color:#ffb0a0;font-size:13px;min-height:18px;"></div>
+        <div class="actions">
+          <button onclick="checkPw('${encodedPwd}')">Valider</button>
+          <button onclick="closeModal()">Annuler</button>
+        </div>`);
+    }
+  }
+
+  function checkPw(encoded){
+    const val = document.getElementById('pw').value;
+    const pwd = atob(encoded); // décodage Base64
+    if(val === pwd){
+      showModal(`
+        <h2>Bravo !</h2>
+        <p>As-tu utilisé l'IA ?</p>
+        <div class="actions">
+          <button onclick="aiChoice(true)">Oui</button>
+          <button onclick="aiChoice(false)">Non</button>
+        </div>
+      `);
+    } else {
+      document.getElementById('pwError').textContent="Mot de passe incorrect";
+    }
+  }
+
+  function aiChoice(usedAI){
+    if(usedAI){
+      window.location.href="labyrinthe.html";
+    } else {
+      showModal(`
+        <h2>En plus tu mens !</h2>
+        <div class="actions">
+          <button onclick="closeModal()">oui j'avoue</button>
+          <button onclick="closeModal()">J'ai menti je suis une sous merde</button>
+        </div>
+      `);
+    }
+  }
+
+  document.querySelectorAll('button[data-move]').forEach(btn=>{
+    btn.addEventListener('click', ()=> playRound(btn.dataset.move));
+  });
+</script>
+</body>
+</html>
