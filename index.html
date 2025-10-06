@@ -12,6 +12,7 @@
     color:#f8f4e8;
     height:100vh;
     display:flex; justify-content:center; align-items:center;
+    position:relative;
   }
   main {
     background:rgba(20,10,5,0.85);
@@ -21,6 +22,7 @@
     text-align:center;
     max-width:500px;
     box-shadow:0 0 25px #5c3b1c;
+    z-index:2;
   }
   h1 {
     font-size:1.8em;
@@ -46,13 +48,14 @@
     transform:scale(1.1);
   }
   .scores { margin:15px 0; font-size:1.2em; }
-  #history { font-size:0.9em; max-height:120px; overflow-y:auto; margin-top:10px; text-align:left; }
+  #history { font-size:0.9em; max-height:120px; overflow-y:auto; margin-top:10px; text-align:left; border:1px dashed rgba(248,244,232,0.2); padding:4px; }
 
   /* Modal */
   .modal-backdrop {
     display:none; position:fixed; inset:0;
     background:rgba(0,0,0,0.7);
     justify-content:center; align-items:center;
+    z-index:10;
   }
   .modal {
     background:#2b1b0f;
@@ -68,7 +71,7 @@
   .modal input { padding:8px; font-size:1em; border-radius:5px; border:1px solid #ccc; }
 
   .actions { margin-top:20px; display:flex; justify-content:center; gap:10px; }
-  .primary { background:#a67c52; }
+  .primary { background:#a67c52; color:#0c0402; cursor:pointer; }
 
   /* Cinématique */
   body.cine-win { animation: flashGreen 0.6s; }
@@ -88,15 +91,23 @@
     80%{transform:translate(6px,0);}
   }
 
-  /* Glyphes secrets (quasi invisibles) */
-  .secret-glyph{
-    color:rgba(248,244,232,0.05);
+  /* Glyphes secrets pour labyrinthe */
+  #secretSymbols {
+    position:fixed;
+    bottom:10px;
+    left:10px;
+    display:flex;
+    gap:6px;
+    z-index:5;
+  }
+  .glyph {
+    font-size:24px;
+    opacity:0.1;
     cursor:pointer;
     user-select:none;
+    transition:opacity 0.2s;
   }
-  .secret-glyph:hover{
-    color:#f8f4e8;
-  }
+  .glyph:hover { opacity:0.25; }
 </style>
 </head>
 <body>
@@ -112,10 +123,10 @@
     </div>
     <div>Ton choix : <span id="playerChoice">—</span></div>
     <div>Choix Oracle : <span id="computerChoice">—</span></div>
-    <div id="history"></div>
+    <div id="history">Que les anciens dieux te guident...</div>
   </main>
 
-  <!-- Modal -->
+  <!-- Modale -->
   <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
     <div class="modal" id="modal"></div>
   </div>
@@ -123,6 +134,13 @@
   <!-- Sons -->
   <audio id="soundWin" src="https://www.myinstants.com/media/sounds/anime-ahh.mp3" preload="auto"></audio>
   <audio id="soundLose" src="https://www.myinstants.com/media/sounds/belle-proute.mp3" preload="auto"></audio>
+
+  <!-- Symboles secrets -->
+  <div id="secretSymbols">
+    <span class="glyph" data-id="1">𓂀</span>
+    <span class="glyph" data-id="2">𓃰</span>
+    <span class="glyph" data-id="3">𓆣</span>
+  </div>
 
 <script>
   const choices = ["rock","paper","scissors"];
@@ -136,8 +154,8 @@
   const soundWin = document.getElementById('soundWin');
   const soundLose = document.getElementById('soundLose');
 
-  let playerScore = 0, computerScore = 0;
-  const names = { rock:"Pierre", paper:"Feuille", scissors:"Ciseaux" };
+  let playerScore=0, computerScore=0;
+  const names={rock:"Pierre", paper:"Feuille", scissors:"Ciseaux"};
 
   function compMove(){ return choices[Math.floor(Math.random()*3)]; }
   function decide(p,c){
@@ -153,14 +171,23 @@
   function reset(){ playerScore=0; computerScore=0; update(); playerChoiceEl.textContent="—"; computerChoiceEl.textContent="—"; }
 
   function playRound(player){
-    const comp = compMove();
+    const comp=compMove();
     playerChoiceEl.textContent=names[player];
     computerChoiceEl.textContent=names[comp];
-    const res = decide(player,comp);
+    const res=decide(player,comp);
 
     if(res==="tie"){ log(`Égalité : ${names[player]} vs ${names[comp]}`); }
-    else if(res==="player"){ playerScore++; log(`Tu gagnes : ${names[player]} bat ${names[comp]}`); soundWin.play(); document.body.classList.add("cine-win","shake"); setTimeout(()=>document.body.classList.remove("cine-win","shake"),600); }
-    else { computerScore++; log(`huser6666666 gagne : ${names[comp]} bat ${names[player]}`); soundLose.play(); document.body.classList.add("cine-lose","shake"); setTimeout(()=>document.body.classList.remove("cine-lose","shake"),600); }
+    else if(res==="player"){
+      playerScore++; log(`Tu gagnes : ${names[player]} bat ${names[comp]}`); 
+      soundWin.play(); 
+      document.body.classList.add("cine-win","shake");
+      setTimeout(()=>document.body.classList.remove("cine-win","shake"),600);
+    } else {
+      computerScore++; log(`huser6666666 gagne : ${names[comp]} bat ${names[player]}`);
+      soundLose.play();
+      document.body.classList.add("cine-lose","shake");
+      setTimeout(()=>document.body.classList.remove("cine-lose","shake"),600);
+    }
 
     update();
 
@@ -169,7 +196,7 @@
     }
     if(playerScore>=3){
       showModal(`
-        <h2>Tu as gagné...</h2>
+        <h2>Tu as gagné... bravo pour cette fois</h2>
         <p>Écris le mot de passe pour révéler la suite.</p>
         <input id="pw" type="password" placeholder="Mot de passe...">
         <div id="pwError" style="color:#ffb0a0;font-size:13px;min-height:18px;"></div>
@@ -190,32 +217,31 @@
     btn.addEventListener('click', ()=> playRound(btn.dataset.move));
   });
 
-  log("Que les anciens dieux te guident...");
-
-  /* ======= Puzzle pour accéder au labyrinthe ======= */
-  const secretSequence = ["🜂","🜃","🜄"]; // hiéroglyphes/emoji
-  let sequenceIndex = 0;
-
-  // Ajouter les glyphes subtils dans l'historique
-  secretSequence.forEach(glyph=>{
-    const div = document.createElement('div');
-    div.innerHTML = `Un ancien symbole : <span class="secret-glyph">${glyph}</span>`;
-    historyList.prepend(div);
-  });
-
-  document.addEventListener('click', e=>{
-    if(e.target.classList.contains('secret-glyph')){
-      if(e.target.textContent === secretSequence[sequenceIndex]){
-        sequenceIndex++;
-        if(sequenceIndex === secretSequence.length){
-          alert("Tu as trouvé le passage secret vers le labyrinthe !");
-          window.location.href = "labyrinthe.html"; // <-- le labyrinthe
+  // Séquence glyphes pour labyrinthe
+  const secretSequence=[
+    {id:"1", clicks:2},
+    {id:"3", clicks:1},
+    {id:"2", clicks:2},
+    {id:"1", clicks:1}
+  ];
+  let currentStep=0, clickCount=0;
+  document.querySelectorAll('#secretSymbols .glyph').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const expected = secretSequence[currentStep];
+      if(el.dataset.id === expected.id){
+        clickCount++;
+        if(clickCount === expected.clicks){
+          currentStep++;
+          clickCount=0;
         }
-      } else {
-        sequenceIndex = 0; // mauvais ordre, reset
+      } else { currentStep=0; clickCount=0; }
+      if(currentStep === secretSequence.length){
+        window.location.href="labyrinthe.html";
       }
-    }
+    });
   });
+
+  log("Que les anciens dieux te guident...");
 </script>
 </body>
 </html>
