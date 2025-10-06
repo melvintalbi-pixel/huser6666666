@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Labyrinthe Antique</title>
+<title>Labyrinthe Antique Hardcore</title>
 <style>
 body {
     margin:0; padding:0;
-    background:#080405;
+    background:#080405 url('https://cdn.pixabay.com/photo/2018/10/27/20/18/silhouette-3777403_1280.jpg') center/cover no-repeat;
     font-family:"Papyrus","Trebuchet MS",sans-serif;
     color:#f8f4e8;
     display:flex;
@@ -37,7 +37,7 @@ body {
 .cell.wall { background:#3a2615; }
 .cell.path { background:#bfa165; }
 .cell.player { background:#0f3; }
-.cell.exit { background:#d4af37; }
+.cell.exit { background:#ffd700; }
 .cell.trap { background:#f00; }
 .modal-backdrop {
     display:none;
@@ -76,22 +76,34 @@ const modal=document.getElementById('modal');
 
 let grid=[], player={x:0,y:0};
 
-// Génération du labyrinthe simple avec chemins et pièges
-function generateMaze(){
-    grid=[];
-    for(let y=0;y<ROWS;y++){
-        let row=[];
-        for(let x=0;x<COLS;x++){
-            if(Math.random()<0.2) row.push('wall');
-            else if(Math.random()<0.05) row.push('trap');
-            else row.push('path');
+// Génération du labyrinthe avec DFS
+function generateMazeDFS() {
+    grid = Array.from({length:ROWS},()=>Array.from({length:COLS},()=> 'wall'));
+    const stack=[];
+    function shuffle(arr){ return arr.sort(()=>Math.random()-0.5); }
+    function visit(x,y){
+        grid[y][x]='path';
+        let dirs=shuffle([[0,-2],[2,0],[0,2],[-2,0]]);
+        for(let [dx,dy] of dirs){
+            const nx=x+dx, ny=y+dy;
+            if(nx>0 && ny>0 && nx<COLS && ny<ROWS && grid[ny][nx]==='wall'){
+                grid[y+dy/2][x+dx/2]='path'; // couloir intermédiaire
+                visit(nx,ny);
+            }
         }
-        grid.push(row);
+    }
+    visit(0,0);
+    // Ajouter pièges aléatoires hors du chemin principal
+    for(let i=0;i<ROWS;i++){
+        for(let j=0;j<COLS;j++){
+            if(grid[i][j]==='path' && Math.random()<0.03) grid[i][j]='trap';
+        }
     }
     grid[0][0]='player';
     grid[ROWS-1][COLS-1]='exit';
     player.x=0; player.y=0;
 }
+
 function renderDisplay(){
     boardWrap.innerHTML='';
     for(let y=0;y<ROWS;y++){
@@ -103,6 +115,7 @@ function renderDisplay(){
     }
     adjustCellSize();
 }
+
 function adjustCellSize(){
     const wrapWidth=boardWrap.clientWidth;
     const wrapHeight=boardWrap.clientHeight;
@@ -111,6 +124,7 @@ function adjustCellSize(){
     const cellSize=Math.min(sizeX,sizeY);
     document.querySelectorAll('.cell').forEach(c=>c.style.width=c.style.height=cellSize+'px');
 }
+
 function movePlayer(dx,dy){
     const nx=player.x+dx;
     const ny=player.y+dy;
@@ -124,10 +138,12 @@ function movePlayer(dx,dy){
     player.x=nx; player.y=ny;
     renderDisplay();
 }
+
 function showModal(){
     modal.innerHTML='<h2>Félicitations !</h2><p>Le mot de passe est : ENVOI UN MESSAGE PRIVE A HUSER6666666 QUI CERTIFIE SUR L’HONNEUR QUE TU NE DONNERAS CETTE SOLUTION A PERSONNE ET IL TE DONNERA LE MOT DE PASSE.</p><button onclick="closeModal()">Fermer</button>';
     modalBackdrop.style.display='flex';
 }
+
 function closeModal(){ modalBackdrop.style.display='none'; }
 
 document.addEventListener('keydown', e=>{
@@ -155,7 +171,7 @@ boardWrap.addEventListener('touchend',e=>{
     touchStart=null;
 });
 
-generateMaze();
+generateMazeDFS();
 renderDisplay();
 window.addEventListener('resize', adjustCellSize);
 </script>
