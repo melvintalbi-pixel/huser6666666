@@ -75,18 +75,18 @@
   .glyph {
     position: fixed;
     font-size: 22px;
-    opacity:0.4;
+    opacity:0.3;
     user-select:none;
     cursor:pointer;
     transition:opacity 0.2s, transform 0.2s;
     z-index:5;
   }
-  .glyph:hover { opacity:0.8; transform:scale(1.3); }
+  .glyph:hover { opacity:0.5; transform:scale(1.1); }
 
-  /* Toast reset */
-  #toastReset {
+  /* Message reset */
+  #glyphHint {
     position:fixed;
-    top:10px;
+    bottom:10px;
     left:50%;
     transform:translateX(-50%);
     background:#a67c52;
@@ -121,7 +121,7 @@
   <div id="history">VLAAA COMMENT JE VAIS T'ARRACHER</div>
 </main>
 
-<div id="toastReset">Séquence réinitialisée !</div>
+<div id="glyphHint">Séquence réinitialisée</div>
 
 <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
   <div class="modal" id="modal"></div>
@@ -228,7 +228,7 @@ const secretSequence=[
 ];
 let currentStep=0, clickCount=0, totalClicks=0;
 const container=document.getElementById('secretSymbols');
-const toast=document.getElementById('toastReset');
+const glyphHint=document.getElementById('glyphHint');
 
 // Positions des glyphes
 const positions=[
@@ -255,8 +255,9 @@ glyphs.forEach((glyphChar,id)=>{
 
     if(totalClicks >=6 && currentStep !== secretSequence.length){
       currentStep=0; clickCount=0; totalClicks=0;
-      toast.style.display='block';
-      setTimeout(()=>toast.style.display='none',1000);
+      glyphHint.textContent="Séquence réinitialisée"; 
+      glyphHint.style.display='block';
+      setTimeout(()=>glyphHint.style.display='none',800);
     }
 
     if(currentStep === secretSequence.length){
