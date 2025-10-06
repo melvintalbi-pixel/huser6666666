@@ -117,15 +117,12 @@
 </head>
 <body>
 <script>
-  // Bloquer mobiles
   const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   if(isMobile){
-    document.body.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:center;height:100vh;
-                  background:#000;color:#fff;font-family:Arial,sans-serif;text-align:center;padding:20px;">
-        <h1>Merci d'utiliser un ordinateur pour l'expérience suivante</h1>
-      </div>`;
-    window._blockedOnMobile = true;
+    // Rediriger vers une page spéciale ou un message
+    window.location.href = "mobile.html"; 
+    // ou afficher un message simple et arrêter l'exécution
+    // document.body.innerHTML = "<h1>Merci d'utiliser un ordinateur pour cette expérience.</h1>";
   }
 </script>
 
