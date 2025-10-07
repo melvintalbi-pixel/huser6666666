@@ -310,6 +310,12 @@ glyphs.forEach((glyphChar,id)=>{
 });
 
 log("SOIV ET ENIBIB");
+
+  
 </script>
+
+  
 </body>
 </html>
+
+
