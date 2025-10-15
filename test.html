@@ -17,7 +17,6 @@
     font-family: 'Cinzel Decorative', serif;
   }
 
-  /* Canvas du fond */
   canvas {
     position: fixed;
     top: 0;
@@ -28,7 +27,6 @@
     background: radial-gradient(circle at center, #120800 0%, #000 100%);
   }
 
-  /* Filtre sombre pour bien lire le texte */
   .overlay {
     position: fixed;
     inset: 0;
@@ -36,8 +34,7 @@
     z-index: 1;
   }
 
-  /* Contenu principal */
-  .invitation {
+  .invitation, .suite {
     position: relative;
     z-index: 2;
     text-align: center;
@@ -46,10 +43,13 @@
     padding: 0 20px;
     font-size: 2.2rem;
     color: #e6c36a;
-    text-shadow: 
-      0 0 10px #e6c36a, 
+    text-shadow:
+      0 0 10px #e6c36a,
       0 0 30px #ff0000,
       2px 2px 6px #000;
+  }
+
+  .invitation {
     animation: fadeInText 3s ease-out forwards;
     opacity: 0;
   }
@@ -74,7 +74,6 @@
     100% { opacity: 1; text-shadow: 0 0 60px #ff0000; }
   }
 
-  /* Curseur pyramide */
   .cursor {
     position: fixed;
     top: 0;
@@ -93,15 +92,64 @@
     filter: drop-shadow(0 0 5px #ff0000);
     transform: rotate(45deg);
   }
+
+  /* Bouton Next */
+  .btn-next {
+    display: inline-block;
+    margin-top: 2rem;
+    padding: 10px 25px;
+    font-size: 1.4rem;
+    color: #d4af37;
+    background: rgba(0,0,0,0.7);
+    border: 2px solid #d4af37;
+    border-radius: 8px;
+    text-shadow: 0 0 8px #ff0000;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px #d4af37;
+  }
+
+  .btn-next:hover {
+    background: #d4af37;
+    color: #000;
+    text-shadow: 0 0 5px #ff0000;
+    box-shadow: 0 0 25px #ff0000;
+    transform: scale(1.05);
+  }
+
+  /* Texte final */
+  .suite {
+    display: none;
+    opacity: 0;
+    transition: opacity 2s ease;
+  }
+
+  .suite.show {
+    display: block;
+    animation: revealText 2s ease forwards;
+  }
+
+  @keyframes revealText {
+    0% { opacity: 0; transform: translateY(40px) scale(0.95); }
+    100% { opacity: 1; transform: translateY(-50%) scale(1); }
+  }
+
 </style>
 </head>
 <body>
   <canvas id="background"></canvas>
   <div class="overlay"></div>
 
-  <div class="invitation">
+  <div class="invitation" id="invitation">
     Tu es convié à l'évènement qui se déroulera le <strong>31 octobre...</strong><br>
-    <span class="subtitle">L'Égypte des Ténèbres t'attend...</span>
+    <span class="subtitle">L'Égypte des Ténèbres t'attend...</span><br>
+    <button class="btn-next" id="nextBtn">Next</button>
+  </div>
+
+  <div class="suite" id="suite">
+    À <strong>17h</strong>, tu devras être assis sur le <strong>canapé</strong><br>
+    du <strong>15 rue Pasteur</strong> à <strong>Cormeilles-en-Vexin</strong>.<br><br>
+    <span class="subtitle">Les portes du temple s’ouvriront…</span>
   </div>
 
   <div class="cursor" id="cursor">
@@ -144,7 +192,6 @@
       ctx.fill();
       p.x += p.dx;
       p.y += p.dy;
-
       if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
       if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
     }
@@ -157,6 +204,20 @@
   document.addEventListener('mousemove', e => {
     cursor.style.left = e.clientX + 'px';
     cursor.style.top = e.clientY + 'px';
+  });
+
+  // --- Gestion du bouton Next ---
+  const nextBtn = document.getElementById('nextBtn');
+  const invitation = document.getElementById('invitation');
+  const suite = document.getElementById('suite');
+
+  nextBtn.addEventListener('click', () => {
+    invitation.style.transition = 'opacity 1.5s ease';
+    invitation.style.opacity = 0;
+    setTimeout(() => {
+      invitation.style.display = 'none';
+      suite.classList.add('show');
+    }, 1500);
   });
 </script>
 </body>
