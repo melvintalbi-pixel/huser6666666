@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>huser6666666 - Étape 3</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      color: #eee;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    h1 {
+      color: #941F06;
+      font-size: clamp(1.3em, 4vw, 2em);
+      text-shadow: 0 0 10px #500;
+      margin-bottom: 10px;
+    }
+
+    p {
+      max-width: 80%;
+      color: #ccc;
+      font-size: clamp(1em, 3.5vw, 1.2em);
+      margin-bottom: 20px;
+    }
+
+    #startBtn {
+      background: none;
+      border: 1px solid #941F06;
+      color: #941F06;
+      padding: 12px 25px;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      letter-spacing: 1px;
+    }
+
+    #startBtn:hover {
+      background: #941F06;
+      color: #fff;
+    }
+
+    #indicator {
+      margin-top: 30px;
+      width: 80%;
+      height: 15px;
+      background: #222;
+      border: 1px solid #941F06;
+      overflow: hidden;
+      border-radius: 10px;
+      display: none;
+    }
+
+    #bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #400, #f00);
+      transition: width 0.1s ease;
+    }
+
+    #result {
+      display: none;
+      margin-top: 30px;
+      color: #fff;
+      font-size: 1.2em;
+      text-shadow: 0 0 10px #f00;
+      animation: flicker 0.3s alternate infinite;
+    }
+
+    @keyframes flicker {
+      from { opacity: 0.8; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <h1>HUSER6666666</h1>
+  <p>huser6666666 dort actuellement, réveil le...<br>comme tu le peux</p>
+
+  <button id="startBtn">Wake him up</button>
+
+  <div id="indicator"><div id="bar"></div></div>
+
+  <div id="result">…Il t’a entendu.<br>Le prochain QR se cache sous le porche.</div>
+
+  <script>
+    const startBtn = document.getElementById('startBtn');
+    const indicator = document.getElementById('indicator');
+    const bar = document.getElementById('bar');
+    const result = document.getElementById('result');
+    let threshold = 0.25; // seuil sonore (0.0 → silence, ~1.0 très fort)
+    let unlocked = false;
+
+    startBtn.addEventListener('click', async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioContext.createMediaStreamSource(stream);
+        const analyser = audioContext.createAnalyser();
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+        source.connect(analyser);
+        startBtn.style.display = 'none';
+        indicator.style.display = 'block';
+
+        function getVolume() {
+          analyser.getByteFrequencyData(dataArray);
+          let sum = 0;
+          for (let i = 0; i < dataArray.length; i++) {
+            sum += dataArray[i];
+          }
+          const average = sum / dataArray.length / 256; // normalisation 0–1
+          return average;
+        }
+
+        function loop() {
+          const volume = getVolume();
+          bar.style.width = Math.min(volume * 100 * 2, 100) + "%";
+
+          if (volume > threshold && !unlocked) {
+            unlocked = true;
+            indicator.style.display = 'none';
+            result.style.display = 'block';
+          }
+
+          if (!unlocked) requestAnimationFrame(loop);
+        }
+
+        loop();
+      } catch (err) {
+        alert("⚠️ Accès au micro refusé. Autorise le micro pour continuer.");
+      }
+    });
+  </script>
+</body>
+</html>
