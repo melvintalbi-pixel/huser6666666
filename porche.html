@@ -9,7 +9,7 @@
 :root {
   --bg: #000;
   --accent: #941F06;
-  --user-green: #00FF80; /* vert Matrix */
+  --user-green: #00FF80;
 }
 
 html, body {
@@ -25,9 +25,7 @@ html, body {
 }
 
 @supports (-webkit-touch-callout: none) {
-  body {
-    height: -webkit-fill-available;
-  }
+  body { height: -webkit-fill-available; }
 }
 
 header {
@@ -57,7 +55,6 @@ header {
   word-wrap: break-word;
 }
 
-/* BOT (Huser) — blanc avec teinte rouge sombre */
 .bot {
   background: rgba(148,31,6,0.08);
   color: #fff;
@@ -65,7 +62,6 @@ header {
   align-self: flex-start;
 }
 
-/* USER — vert Matrix lumineux */
 .user {
   background: rgba(0, 255, 128, 0.08);
   color: var(--user-green);
@@ -91,7 +87,7 @@ input {
   background: #111;
   color: #fff;
   font-family: inherit;
-  font-size: 16px; /* évite le zoom iOS */
+  font-size: 16px;
   outline: none;
 }
 
@@ -128,7 +124,8 @@ const send=document.getElementById('send');
 const NAMES=["shahfeez merouf","eva de chalon","hélène mc intosh","hugues carlow","ariane price","sir william saville","leer wilde","von spanheim","capitaine tregarne","sergent mc gill"];
 const VIDEO="https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
-const QUESTIONS=[
+// toutes les questions de base
+let QUESTIONS=[
   ".entends-tu les voix, toi aussi ?",
   ".que vois-tu quand tu fermes les yeux ?",
   ".as-tu déjà senti la pièce devenir froide soudainement ?",
@@ -140,7 +137,21 @@ const QUESTIONS=[
   ".si tu devais vendre l'âme de victoria ou chris, tu choisirais qui ?"
 ];
 
-// Réponses conditionnelles avec variantes
+// clone pour suivi
+let remainingQuestions = [...QUESTIONS];
+
+// Fonction pour piocher une question aléatoire sans doublon
+function getNextQuestion() {
+  if (remainingQuestions.length === 0) {
+    remainingQuestions = [...QUESTIONS]; // reset si jamais
+  }
+  const index = Math.floor(Math.random() * remainingQuestions.length);
+  const q = remainingQuestions[index];
+  remainingQuestions.splice(index, 1);
+  return q;
+}
+
+// Réponses conditionnelles
 function smartReply(userText) {
   const t = userText.toLowerCase();
   const pick = arr => arr[Math.floor(Math.random() * arr.length)];
@@ -180,7 +191,7 @@ function smartReply(userText) {
   ]);
 }
 
-// Affichage d'un message
+// Ajout message à l’écran
 function addMsg(text,who='bot'){
   const d=document.createElement('div');
   d.className='msg '+(who==='bot'?'bot':'user');
@@ -216,7 +227,7 @@ function handleSend(){
 
 function nextQuestion(){
   if(step<5){
-    const q=QUESTIONS[Math.floor(Math.random()*QUESTIONS.length)];
+    const q=getNextQuestion();
     addMsg(q);
     step++;
   }else{
