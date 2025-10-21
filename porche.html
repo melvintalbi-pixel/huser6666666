@@ -47,19 +47,84 @@ const QUESTIONS=[
 ];
 
 // réponses conditionnelles basées sur mots-clés
-function smartReply(userText){
-  const t=userText.toLowerCase();
-  if(/oui|ouais|ouai|yep|certainement/.test(t)) return ".je m'en doutais.";
-  if(/non|pas|jamais|aucune/.test(t)) return ".mensonge.";
-  if(/peur|angoiss|effray|terrifi/.test(t)) return ".la peur t'habite, elle a bon goût.";
-  if(/mort|mourir|tombe|cimet/.test(t)) return ".elle est plus proche que tu ne crois.";
-  if(/fantome|esprit|demon|huser/.test(t)) return ".tu prononces mon nom avec maladresse.";
-  if(/froid|glac|gel/.test(t)) return ".c'est moi, je passe près de toi.";
-  if(/soleil|jour|lumi/.test(t)) return ".la lumière me blesse.";
-  if(/rien|vide|nul/.test(t)) return ".le vide te regarde aussi.";
-  if(/victoria|chris|cricri|yaya|vico/.test(t)) return ".t'es une belle salope";
-  return [".intéressant."," .je vois."," .continue."," .tu crois vraiment à ce que tu dis ?"][Math.floor(Math.random()*4)];
+function smartReply(userText) {
+  const t = userText.toLowerCase();
+
+  // petite fonction utilitaire pour choisir aléatoirement une phrase
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+
+  if (/oui|ouais|ouai|yep|certainement/.test(t))
+    return pick([
+      ".je m'en doutais.",
+      ".tu confirmes mes soupçons.",
+      ".évidemment."
+    ]);
+
+  if (/non|pas|jamais|aucune/.test(t))
+    return pick([
+      ".mensonge.",
+      ".tu mens comme tu respires.",
+      ".je n'en crois pas un mot."
+    ]);
+
+  if (/peur|angoiss|effray|terrifi/.test(t))
+    return pick([
+      ".la peur t'habite, elle a bon goût.",
+      ".je me nourris de ta peur.",
+      ".elle te va bien, cette terreur."
+    ]);
+
+  if (/mort|mourir|tombe|cimet/.test(t))
+    return pick([
+      ".elle est plus proche que tu ne crois.",
+      ".la mort écoute, patiente.",
+      ".tu parles d'elle comme d'une vieille amie."
+    ]);
+  
+  if (/ta mère|ta maman|ta daronne|ta mere/.test(t))
+    return pick([
+      ".parle encore une fois de ma mère comme ça je vais te hanter le cul, gicler ce que j'ai de plus puissant et maléfique dans ton âme deguelasse ! et ça jusqu'a la fin de tes jours."
+    ]);
+  
+  if (/fantome|esprit|demon|huser/.test(t))
+    return pick([
+      ".tu prononces mon nom avec maladresse.",
+      ".je suis là, juste derrière toi.",
+      ".mon nom résonne dans ta tête."
+    ]);
+
+  if (/froid|glac|gel/.test(t))
+    return pick([
+      ".c'est moi, je passe près de toi.",
+      ".ressens-tu ce froid ? c'est ma main.",
+      ".chaque souffle t'appartient un peu moins."
+    ]);
+
+  if (/soleil|jour|lumi/.test(t))
+    return pick([
+      ".la lumière me blesse.",
+      ".je préfère les ombres.",
+      ".le jour me hait autant que je le hais."
+    ]);
+
+  if (/rien|vide|nul/.test(t))
+    return pick([
+      ".le vide te regarde aussi.",
+      ".rien, c'est tout ce qu'il reste.",
+      ".je suis né du vide."
+    ]);
+
+  // réponses génériques si rien ne correspond
+  return pick([
+    ".intéressant.",
+    ".je vois.",
+    ".continue.",
+    ".tu crois vraiment à ce que tu dis ?",
+    ".tes mots m'amusent.",
+    ".je t'écoute, même si tu ne devrais pas parler."
+  ]);
 }
+
 
 // ajout message à l’écran
 function addMsg(text,who='bot'){
