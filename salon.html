@@ -2,58 +2,54 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>huser6666666</title>
   <style>
-    body {
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden; /* empêche tout scroll */
       background-color: #000;
       color: #000;
       font-family: 'Courier New', Courier, monospace;
-      padding: 30px;
-      height: 100vh;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      text-align: center;
-      overflow: hidden;
       position: relative;
+      touch-action: manipulation;
     }
 
     h1 {
       position: absolute;
-      top: 20px;
-      width: 100%;
+      top: 5%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
       text-align: center;
-      font-size: 2em;
+      font-size: clamp(1.1em, 4vw, 2em);
       color: #941F06;
-      letter-spacing: 4px;
+      letter-spacing: 2px;
+      line-height: 1.3em;
+      word-wrap: break-word;
     }
 
     .hidden-text {
-      font-size: 1.3em;
-      line-height: 1.6em;
-      max-width: 600px;
+      text-align: center;
+      font-size: clamp(1em, 4vw, 1.3em);
+      line-height: 1.5em;
+      max-width: 90%;
       color: #000;
       transition: color 0.1s ease, text-shadow 0.1s ease;
-    }
-
-    /* Effet d’éclair */
-    .flash {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: white;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.1s ease;
+      user-select: none;
     }
 
     /* Bouton caché : minuscule, invisible */
     #revealBtn {
       position: absolute;
-      bottom: 10%;
+      bottom: 12%;
       right: 8%;
       width: 60px;
       height: 60px;
@@ -62,25 +58,29 @@
       cursor: pointer;
       z-index: 10;
       opacity: 0; /* totalement invisible */
+      touch-action: manipulation;
     }
 
-    /* Lettre qui apparaît pendant l’éclair */
-    .flash-letter {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 3em;
-      color: #fff;
-      text-shadow: 0 0 20px #f00;
-      opacity: 0;
-      transition: opacity 0.1s ease;
-      font-family: monospace;
+    /* Petit texte subtil à côté du titre */
+    #whisper {
+      position: absolute;
+      top: 9%;
+      right: 12%;
+      font-size: 0.9em;
+      color: rgba(180, 0, 0, 0.1);
+      font-style: italic;
+      animation: pulse 6s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.05; }
+      50% { opacity: 0.15; }
     }
   </style>
 </head>
 <body>
   <h1>.huser6666666. .tu es énervés.frappe.moi.parout.</h1>
+  <span id="whisper">...il attend ton contact.</span>
 
   <div class="hidden-text" id="secretText">
     LE PROCHAIN QR CODE DE LA QUÊTE EST DANS LES TOILETTES
@@ -89,37 +89,11 @@
   <!-- Bouton caché (petite zone en bas à droite) -->
   <button id="revealBtn" aria-label="zone cachée"></button>
 
-  <div class="flash"></div>
-  <div class="flash-letter" id="flashLetter"></div>
-
   <script>
-    const flash = document.querySelector('.flash');
-    const flashLetter = document.getElementById('flashLetter');
     const secret = document.getElementById('secretText');
     const btn = document.getElementById('revealBtn');
-    const message = "LE PROCHAIN QR CODE DE LA QUÊTE EST DANS LES TOILETTES";
-    let index = 0;
 
-    // Fonction éclair automatique
-    function lightning() {
-      flash.style.opacity = 1;
-      const letter = message[index];
-      if (letter && letter !== ' ') {
-        flashLetter.textContent = letter;
-        flashLetter.style.opacity = 1;
-      }
-      index = (index + 1) % message.length;
-
-      setTimeout(() => {
-        flash.style.opacity = 0;
-        flashLetter.style.opacity = 0;
-      }, 200);
-    }
-
-    setInterval(lightning, 10000);
-    setTimeout(lightning, 3000);
-
-    // Bouton caché : révèle brièvement le texte
+    // Quand on tape sur la zone cachée, le texte s'affiche brièvement
     btn.addEventListener('click', () => {
       secret.style.color = "#fff";
       secret.style.textShadow = "0 0 10px #f00";
