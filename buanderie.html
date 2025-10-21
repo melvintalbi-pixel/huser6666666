@@ -18,6 +18,7 @@
       align-items: center;
       justify-content: center;
       text-align: center;
+      transition: background 0.3s ease;
     }
 
     h1 {
@@ -25,13 +26,15 @@
       font-size: clamp(1.3em, 4vw, 2em);
       text-shadow: 0 0 10px #500;
       margin-bottom: 10px;
+      transition: color 0.3s ease, text-shadow 0.3s ease;
     }
 
     p {
-      max-width: 80%;
+      max-width: 85%;
       color: #ccc;
       font-size: clamp(1em, 3.5vw, 1.2em);
-      margin-bottom: 20px;
+      margin-bottom: 25px;
+      transition: opacity 0.3s ease;
     }
 
     #startBtn {
@@ -50,96 +53,132 @@
       color: #fff;
     }
 
-    #indicator {
-      margin-top: 30px;
-      width: 80%;
-      height: 15px;
-      background: #222;
-      border: 1px solid #941F06;
-      overflow: hidden;
-      border-radius: 10px;
-      display: none;
-    }
-
-    #bar {
-      width: 0%;
-      height: 100%;
-      background: linear-gradient(90deg, #400, #f00);
-      transition: width 0.1s ease;
+    #heard {
+      margin-top: 25px;
+      font-size: 1em;
+      color: #aaa;
+      opacity: 0.8;
+      max-width: 80%;
     }
 
     #result {
       display: none;
-      margin-top: 30px;
+      margin-top: 40px;
       color: #fff;
-      font-size: 1.2em;
-      text-shadow: 0 0 10px #f00;
-      animation: flicker 0.3s alternate infinite;
+      font-size: 1.3em;
+      text-shadow: 0 0 15px #f00;
+      animation: flicker 0.25s alternate infinite;
     }
 
     @keyframes flicker {
-      from { opacity: 0.8; }
+      from { opacity: 0.7; }
       to { opacity: 1; }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translate(0, 0); }
+      25% { transform: translate(-2px, 1px); }
+      50% { transform: translate(2px, -2px); }
+      75% { transform: translate(-1px, 2px); }
+    }
+
+    .shake {
+      animation: shake 0.3s infinite;
     }
   </style>
 </head>
 <body>
   <h1>HUSER6666666</h1>
-  <p>huser6666666 dort actuellement, réveil le...<br>comme tu le peux</p>
+  <p>Il dort profondément...<br>Dis la phrase complète, à voix haute, pour l’invoquer.</p>
 
-  <button id="startBtn">Wake him up</button>
-
-  <div id="indicator"><div id="bar"></div></div>
-
-  <div id="result">…Il t’a entendu.<br>Le prochain QR se cache sous le porche.</div>
+  <button id="startBtn">Commencer l’incantation</button>
+  <div id="heard"></div>
+  <div id="result">…Il s’est réveillé.<br>Le prochain QR t’attend sous le porche.</div>
 
   <script>
     const startBtn = document.getElementById('startBtn');
-    const indicator = document.getElementById('indicator');
-    const bar = document.getElementById('bar');
+    const heard = document.getElementById('heard');
     const result = document.getElementById('result');
-    let threshold = 0.25; // seuil sonore (0.0 → silence, ~1.0 très fort)
-    let unlocked = false;
+    const body = document.body;
+    const h1 = document.querySelector('h1');
 
-    startBtn.addEventListener('click', async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const source = audioContext.createMediaStreamSource(stream);
-        const analyser = audioContext.createAnalyser();
-        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    // Phrase rituelle à reconnaître
+    const targetPhrase = "la nuit tombe il est temps de hanter les ames des gens present ce soir a cormeille";
 
-        source.connect(analyser);
-        startBtn.style.display = 'none';
-        indicator.style.display = 'block';
+    // Normalisation texte : minuscules, sans accents
+    function normalize(str) {
+      return str
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[.,!?]/g, "")
+        .trim();
+    }
 
-        function getVolume() {
-          analyser.getByteFrequencyData(dataArray);
-          let sum = 0;
-          for (let i = 0; i < dataArray.length; i++) {
-            sum += dataArray[i];
-          }
-          const average = sum / dataArray.length / 256; // normalisation 0–1
-          return average;
-        }
-
-        function loop() {
-          const volume = getVolume();
-          bar.style.width = Math.min(volume * 100 * 2, 100) + "%";
-
-          if (volume > threshold && !unlocked) {
-            unlocked = true;
-            indicator.style.display = 'none';
-            result.style.display = 'block';
-          }
-
-          if (!unlocked) requestAnimationFrame(loop);
-        }
-
-        loop();
-      } catch (err) {
-        alert("⚠️ Accès au micro refusé. Autorise le micro pour continuer.");
+    startBtn.addEventListener('click', () => {
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert("⚠️ Ton navigateur ne supporte pas la reconnaissance vocale.");
+        return;
       }
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.lang = "fr-FR";
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      startBtn.style.display = "none";
+      heard.textContent = "🎙️ Parle maintenant...";
+      heard.style.opacity = 1;
+
+      recognition.start();
+
+      recognition.onresult = (event) => {
+        const transcript = normalize(event.results[0][0].transcript);
+        heard.textContent = "Tu as dit : " + transcript;
+        console.log("Reconnu :", transcript);
+
+        // Distance de similarité (simple ratio de mots reconnus)
+        const correctWords = normalize(targetPhrase).split(" ");
+        const spokenWords = transcript.split(" ");
+        let matches = 0;
+        for (let word of spokenWords) {
+          if (correctWords.includes(word)) matches++;
+        }
+        const accuracy = matches / correctWords.length;
+
+        if (accuracy > 0.7) {
+          // Succès
+          heard.style.color = "#0f0";
+          body.style.background = "#400";
+          h1.classList.add("shake");
+          setTimeout(() => {
+            h1.classList.remove("shake");
+            result.style.display = "block";
+            body.style.background = "#300";
+          }, 1500);
+          heard.textContent += " ✅";
+        } else {
+          // Échec
+          heard.style.color = "#f00";
+          heard.textContent += " ❌ Mauvaise invocation.";
+          setTimeout(() => {
+            startBtn.style.display = "block";
+            heard.style.color = "#aaa";
+          }, 2000);
+        }
+      };
+
+      recognition.onerror = (event) => {
+        heard.textContent = "Erreur : " + event.error;
+        startBtn.style.display = "block";
+      };
+
+      recognition.onend = () => {
+        if (result.style.display === "none" && heard.style.color !== "#0f0") {
+          startBtn.style.display = "block";
+        }
+      };
     });
   </script>
 </body>
