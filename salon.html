@@ -1,51 +1,89 @@
+<!-- index.html (Salon - version mobile compatible) -->
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Huser6666666 - Étape 1</title>
-<style>
-body {
-background-color: #000;
-color: #000;
-font-family: 'Courier New', Courier, monospace;
-padding: 30px;
-height: 100vh;
-display: flex;
-align-items: center;
-justify-content: center;
-text-align: center;
-background-image: radial-gradient(circle at center, #050505 0%, #000 80%);
-}
-.hidden-text {
-user-select: text;
-cursor: text;
-font-size: 1.3em;
-line-height: 1.6em;
-max-width: 600px;
-}
-.hidden-text::selection {
-background-color: #f00;
-color: #fff;
-}
-h1 {
-color: #a00;
-text-shadow: 0 0 15px #f00;
-font-size: 2em;
-position: absolute;
-top: 30px;
-width: 100%;
-text-align: center;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>huser6666666 </title>
+  <style>
+    body {
+      background-color: #000;
+      color: #000;
+      font-family: 'Courier New', Courier, monospace;
+      padding: 30px;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background-image: radial-gradient(circle at center, #050505 0%, #000 80%);
+    }
+
+    h1 {
+      color: #a00;
+      text-shadow: 0 0 15px #f00;
+      font-size: 2em;
+      position: absolute;
+      top: 30px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .hidden-text {
+      user-select: text;
+      cursor: text;
+      font-size: 1.3em;
+      line-height: 1.6em;
+      max-width: 600px;
+      color: #000;
+      transition: color 0.3s;
+    }
+
+    /* surlignage visible sur desktop */
+    ::selection {
+      background-color: #f00;
+      color: #fff;
+    }
+
+    /* thème horrifique */
+    @keyframes flicker {
+      0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+        opacity: 1;
+      }
+      20%, 22%, 24%, 55% {
+        opacity: 0.3;
+      }
+    }
+    body {
+      animation: flicker 6s infinite;
+    }
+  </style>
 </head>
 <body>
-<h1>Huser6666666</h1>
-<div class="hidden-text">
-LE PROCHAIN QR CODE DE LA QUÊTE EST DANS LES TOILETTES
-</div>
-<script>
-// Effet sonore subtil ou clignotement léger possible plus tard
-console.log("Astuce : surligne le texte...");
-</script>
+  <h1>Huser6666666</h1>
+  <div class="hidden-text" id="secretText">
+    LE PROCHAIN QR CODE DE LA QUÊTE EST DANS LES TOILETTES
+  </div>
+
+  <script>
+    // Rendre visible sur double-tap (mobile)
+    const secret = document.getElementById('secretText');
+    let revealed = false;
+
+    secret.addEventListener('touchstart', () => {
+      if (!revealed) {
+        secret.style.color = '#fff';
+        secret.style.textShadow = '0 0 8px #f00';
+        revealed = true;
+        setTimeout(() => {
+          secret.style.color = '#000';
+          secret.style.textShadow = 'none';
+          revealed = false;
+        }, 4000); // visible pendant 4 secondes
+      }
+    });
+
+    console.log("Astuce : essaye de maintenir ton doigt sur l’écran...");
+  </script>
 </body>
 </html>
