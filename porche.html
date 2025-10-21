@@ -4,11 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>.huser6666666</title>
+
 <style>
 :root {
   --bg: #000;
   --accent: #941F06;
+  --user-green: #00FF80; /* vert Matrix */
 }
+
 html, body {
   margin: 0;
   padding: 0;
@@ -20,11 +23,13 @@ html, body {
   flex-direction: column;
   overflow: hidden;
 }
+
 @supports (-webkit-touch-callout: none) {
   body {
     height: -webkit-fill-available;
   }
 }
+
 header {
   color: var(--accent);
   text-align: center;
@@ -33,6 +38,7 @@ header {
   letter-spacing: 2px;
   flex-shrink: 0;
 }
+
 #chat {
   flex: 1;
   overflow-y: auto;
@@ -41,22 +47,33 @@ header {
   flex-direction: column;
   gap: 10px;
 }
+
 .msg {
   max-width: 80%;
   padding: 10px 15px;
   border-radius: 8px;
   line-height: 1.4;
   font-size: 16px;
+  word-wrap: break-word;
 }
+
+/* BOT (Huser) — blanc avec teinte rouge sombre */
 .bot {
-  background: rgba(148,31,6,.08);
+  background: rgba(148,31,6,0.08);
+  color: #fff;
+  border: 1px solid rgba(148,31,6,0.05);
   align-self: flex-start;
-  border: 1px solid rgba(148,31,6,.05);
 }
+
+/* USER — vert Matrix lumineux */
 .user {
-  background: rgba(255,255,255,.05);
+  background: rgba(0, 255, 128, 0.08);
+  color: var(--user-green);
+  border: 1px solid rgba(0,255,128,0.2);
   align-self: flex-end;
+  box-shadow: 0 0 5px rgba(0,255,128,0.3);
 }
+
 footer {
   display: flex;
   gap: 10px;
@@ -65,6 +82,7 @@ footer {
   background: rgba(0,0,0,.7);
   flex-shrink: 0;
 }
+
 input {
   flex: 1;
   padding: 12px;
@@ -73,9 +91,10 @@ input {
   background: #111;
   color: #fff;
   font-family: inherit;
-  font-size: 16px;
+  font-size: 16px; /* évite le zoom iOS */
   outline: none;
 }
+
 button {
   background: var(--accent);
   color: #fff;
@@ -85,12 +104,14 @@ button {
   cursor: pointer;
   font-size: 16px;
 }
+
 a.link {
   color: #fff;
   text-decoration: underline;
 }
 </style>
 </head>
+
 <body>
 <header>.huser6666666</header>
 <div id="chat"></div>
@@ -119,6 +140,7 @@ const QUESTIONS=[
   ".si tu devais vendre l'âme de victoria ou chris, tu choisirais qui ?"
 ];
 
+// Réponses conditionnelles avec variantes
 function smartReply(userText) {
   const t = userText.toLowerCase();
   const pick = arr => arr[Math.floor(Math.random() * arr.length)];
@@ -158,6 +180,7 @@ function smartReply(userText) {
   ]);
 }
 
+// Affichage d'un message
 function addMsg(text,who='bot'){
   const d=document.createElement('div');
   d.className='msg '+(who==='bot'?'bot':'user');
@@ -173,6 +196,7 @@ function addMsg(text,who='bot'){
 let step=0;
 let awaitingName=false;
 
+// intro
 addMsg(".bonsoir.");
 setTimeout(()=>addMsg(".je t'observe depuis un moment."),1500);
 setTimeout(()=>nextQuestion(),3000);
