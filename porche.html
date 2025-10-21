@@ -2,17 +2,13 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<!-- 🔥 Empêche le zoom automatique sur iOS -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
 <title>.huser6666666</title>
-
 <style>
-:root{
-  --bg:#000;
-  --accent:#941F06;
+:root {
+  --bg: #000;
+  --accent: #941F06;
 }
-
 html, body {
   margin: 0;
   padding: 0;
@@ -24,14 +20,11 @@ html, body {
   flex-direction: column;
   overflow: hidden;
 }
-
-/* évite les “sauts” de viewport quand le clavier apparaît */
 @supports (-webkit-touch-callout: none) {
   body {
     height: -webkit-fill-available;
   }
 }
-
 header {
   color: var(--accent);
   text-align: center;
@@ -40,7 +33,6 @@ header {
   letter-spacing: 2px;
   flex-shrink: 0;
 }
-
 #chat {
   flex: 1;
   overflow-y: auto;
@@ -49,26 +41,22 @@ header {
   flex-direction: column;
   gap: 10px;
 }
-
 .msg {
   max-width: 80%;
   padding: 10px 15px;
   border-radius: 8px;
   line-height: 1.4;
-  font-size: 16px; /* 🔥 évite le zoom automatique sur input */
+  font-size: 16px;
 }
-
 .bot {
   background: rgba(148,31,6,.08);
   align-self: flex-start;
   border: 1px solid rgba(148,31,6,.05);
 }
-
 .user {
   background: rgba(255,255,255,.05);
   align-self: flex-end;
 }
-
 footer {
   display: flex;
   gap: 10px;
@@ -77,7 +65,6 @@ footer {
   background: rgba(0,0,0,.7);
   flex-shrink: 0;
 }
-
 input {
   flex: 1;
   padding: 12px;
@@ -86,10 +73,9 @@ input {
   background: #111;
   color: #fff;
   font-family: inherit;
-  font-size: 16px; /* 🔥 taille minimale iOS */
+  font-size: 16px;
   outline: none;
 }
-
 button {
   background: var(--accent);
   color: #fff;
@@ -97,9 +83,8 @@ button {
   padding: 12px 15px;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 16px; /* 🔥 taille cohérente */
+  font-size: 16px;
 }
-
 a.link {
   color: #fff;
   text-decoration: underline;
@@ -134,87 +119,45 @@ const QUESTIONS=[
   ".si tu devais vendre l'âme de victoria ou chris, tu choisirais qui ?"
 ];
 
-// réponses conditionnelles basées sur mots-clés
 function smartReply(userText) {
   const t = userText.toLowerCase();
-
-  // petite fonction utilitaire pour choisir aléatoirement une phrase
   const pick = arr => arr[Math.floor(Math.random() * arr.length)];
 
   if (/oui|ouais|ouai|yep|certainement/.test(t))
-    return pick([
-      ".je m'en doutais.",
-      ".tu confirmes mes soupçons.",
-      ".évidemment."
-    ]);
+    return pick([".je m'en doutais.",".tu confirmes mes soupçons.",".évidemment."]);
 
   if (/non|pas|jamais|aucune/.test(t))
-    return pick([
-      ".mensonge.",
-      ".tu mens comme tu respires.",
-      ".je n'en crois pas un mot."
-    ]);
+    return pick([".mensonge.",".tu mens comme tu respires.",".je n'en crois pas un mot."]);
 
   if (/peur|angoiss|effray|terrifi/.test(t))
-    return pick([
-      ".la peur t'habite, elle a bon goût.",
-      ".je me nourris de ta peur.",
-      ".elle te va bien, cette terreur."
-    ]);
+    return pick([".la peur t'habite, elle a bon goût.",".je me nourris de ta peur.",".elle te va bien, cette terreur."]);
 
   if (/mort|mourir|tombe|cimet/.test(t))
-    return pick([
-      ".elle est plus proche que tu ne crois.",
-      ".la mort écoute, patiente.",
-      ".tu parles d'elle comme d'une vieille amie."
-    ]);
-  
+    return pick([".elle est plus proche que tu ne crois.",".la mort écoute, patiente.",".tu parles d'elle comme d'une vieille amie."]);
+
   if (/ta mère|ta maman|ta daronne|ta mere/.test(t))
     return pick([
-      ".parle encore une fois de ma mère comme ça je vais te hanter le cul, gicler ce que j'ai de plus puissant et maléfique dans ton âme deguelasse ! et ça jusqu'a la fin de tes jours."
+      ".parle encore une fois de ma mère comme ça je vais te hanter le cul, gicler ce que j\\'ai de plus puissant et maléfique dans ton âme dégueulasse ! et ça jusqu\\'à la fin de tes jours."
     ]);
-  
+
   if (/fantome|esprit|demon|huser/.test(t))
-    return pick([
-      ".tu prononces mon nom avec maladresse.",
-      ".je suis là, juste derrière toi.",
-      ".mon nom résonne dans ta tête."
-    ]);
+    return pick([".tu prononces mon nom avec maladresse.",".je suis là, juste derrière toi.",".mon nom résonne dans ta tête."]);
 
   if (/froid|glac|gel/.test(t))
-    return pick([
-      ".c'est moi, je passe près de toi.",
-      ".ressens-tu ce froid ? c'est ma main.",
-      ".chaque souffle t'appartient un peu moins."
-    ]);
+    return pick([".c'est moi, je passe près de toi.",".ressens-tu ce froid ? c'est ma main.",".chaque souffle t'appartient un peu moins."]);
 
   if (/soleil|jour|lumi/.test(t))
-    return pick([
-      ".la lumière me blesse.",
-      ".je préfère les ombres.",
-      ".le jour me hait autant que je le hais."
-    ]);
+    return pick([".la lumière me blesse.",".je préfère les ombres.",".le jour me hait autant que je le hais."]);
 
   if (/rien|vide|nul/.test(t))
-    return pick([
-      ".le vide te regarde aussi.",
-      ".rien, c'est tout ce qu'il reste.",
-      ".je suis né du vide."
-    ]);
+    return pick([".le vide te regarde aussi.",".rien, c'est tout ce qu'il reste.",".je suis né du vide."]);
 
-  // réponses génériques si rien ne correspond
   return pick([
-    ".intéressant.",
-    ".je vois.",
-    ".continue.",
-    ".tu crois vraiment à ce que tu dis ?",
-    ".tes mots m'amusent.",
-    ".je t'écoute, même si tu ne devrais pas parler."
+    ".intéressant.",".je vois.",".continue.",".tu crois vraiment à ce que tu dis ?",
+    ".tes mots m'amusent.",".je t'écoute, même si tu ne devrais pas parler."
   ]);
 }
 
-
-// ajout message à l’écran
 function addMsg(text,who='bot'){
   const d=document.createElement('div');
   d.className='msg '+(who==='bot'?'bot':'user');
@@ -243,7 +186,7 @@ function handleSend(){
   addMsg(val,'user');
   input.value='';
   if(awaitingName){checkName(val);return;}
-  addMsg(smartReply(val)); // réponse contextuelle
+  addMsg(smartReply(val));
   setTimeout(nextQuestion,1500);
 }
 
