@@ -2,20 +2,108 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- 🔥 Empêche le zoom automatique sur iOS -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
 <title>.huser6666666</title>
+
 <style>
-:root{--bg:#000;--accent:#941F06}
-body{margin:0;background:var(--bg);color:#eee;font-family:'Courier New',monospace;display:flex;flex-direction:column;height:100vh;overflow:hidden}
-header{color:var(--accent);text-align:center;padding:15px;border-bottom:1px solid #111;letter-spacing:2px}
-#chat{flex:1;overflow-y:auto;padding:15px;display:flex;flex-direction:column;gap:10px}
-.msg{max-width:80%;padding:10px 15px;border-radius:8px;line-height:1.4}
-.bot{background:rgba(148,31,6,.08);align-self:flex-start;border:1px solid rgba(148,31,6,.05)}
-.user{background:rgba(255,255,255,.05);align-self:flex-end}
-footer{display:flex;gap:10px;padding:10px;border-top:1px solid #111;background:rgba(0,0,0,.7)}
-input{flex:1;padding:10px;border-radius:6px;border:1px solid #222;background:#111;color:#fff;font-family:inherit}
-button{background:var(--accent);color:#fff;border:none;padding:10px 15px;border-radius:6px;cursor:pointer}
-a.link{color:#fff;text-decoration:underline}
+:root{
+  --bg:#000;
+  --accent:#941F06;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bg);
+  color: #eee;
+  font-family: 'Courier New', monospace;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* évite les “sauts” de viewport quand le clavier apparaît */
+@supports (-webkit-touch-callout: none) {
+  body {
+    height: -webkit-fill-available;
+  }
+}
+
+header {
+  color: var(--accent);
+  text-align: center;
+  padding: 15px;
+  border-bottom: 1px solid #111;
+  letter-spacing: 2px;
+  flex-shrink: 0;
+}
+
+#chat {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.msg {
+  max-width: 80%;
+  padding: 10px 15px;
+  border-radius: 8px;
+  line-height: 1.4;
+  font-size: 16px; /* 🔥 évite le zoom automatique sur input */
+}
+
+.bot {
+  background: rgba(148,31,6,.08);
+  align-self: flex-start;
+  border: 1px solid rgba(148,31,6,.05);
+}
+
+.user {
+  background: rgba(255,255,255,.05);
+  align-self: flex-end;
+}
+
+footer {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  border-top: 1px solid #111;
+  background: rgba(0,0,0,.7);
+  flex-shrink: 0;
+}
+
+input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #222;
+  background: #111;
+  color: #fff;
+  font-family: inherit;
+  font-size: 16px; /* 🔥 taille minimale iOS */
+  outline: none;
+}
+
+button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 12px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px; /* 🔥 taille cohérente */
+}
+
+a.link {
+  color: #fff;
+  text-decoration: underline;
+}
 </style>
 </head>
 <body>
