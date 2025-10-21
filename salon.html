@@ -1,10 +1,9 @@
-<!-- index.html (Salon - version mobile compatible) -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>huser6666666 </title>
+  <title>Huser6666666 - Étape 1</title>
   <style>
     body {
       background-color: #000;
@@ -16,17 +15,18 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      background-image: radial-gradient(circle at center, #050505 0%, #000 80%);
+      overflow: hidden;
+      position: relative;
     }
 
     h1 {
-      color: #a00;
-      text-shadow: 0 0 15px #f00;
-      font-size: 2em;
       position: absolute;
-      top: 30px;
+      top: 20px;
       width: 100%;
       text-align: center;
+      font-size: 2em;
+      color: #111;
+      letter-spacing: 4px;
     }
 
     .hidden-text {
@@ -36,54 +36,92 @@
       line-height: 1.6em;
       max-width: 600px;
       color: #000;
-      transition: color 0.3s;
     }
 
-    /* surlignage visible sur desktop */
-    ::selection {
+    /* Texte visible au surlignage */
+    ::selection, ::-moz-selection {
       background-color: #f00;
       color: #fff;
     }
 
-    /* thème horrifique */
-    @keyframes flicker {
-      0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
-        opacity: 1;
-      }
-      20%, 22%, 24%, 55% {
-        opacity: 0.3;
-      }
+    /* Effet d’éclair */
+    .flash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: white;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.1s ease;
     }
-    body {
-      animation: flicker 6s infinite;
+
+    /* Lettre qui apparaît */
+    .flash-letter {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 3em;
+      color: #fff;
+      text-shadow: 0 0 20px #f00;
+      opacity: 0;
+      transition: opacity 0.1s ease;
+      font-family: monospace;
+    }
+
+    @keyframes flicker {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.9; }
+    }
+    body.flicker {
+      animation: flicker 0.15s ease-in-out;
     }
   </style>
 </head>
 <body>
   <h1>huser6666666</h1>
-  <div class="hidden-text" id="secretText">
+
+  <div class="hidden-text">
     LE PROCHAIN QR CODE DE LA QUÊTE EST DANS LES TOILETTES
   </div>
 
+  <div class="flash"></div>
+  <div class="flash-letter" id="flashLetter"></div>
+
   <script>
-    // Rendre visible sur double-tap (mobile)
-    const secret = document.getElementById('secretText');
-    let revealed = false;
+    const flash = document.querySelector('.flash');
+    const flashLetter = document.getElementById('flashLetter');
+    const message = "LE PROCHAIN QR CODE DE LA QUÊTE EST DANS LES TOILETTES";
+    let index = 0;
 
-    secret.addEventListener('touchstart', () => {
-      if (!revealed) {
-        secret.style.color = '#fff';
-        secret.style.textShadow = '0 0 8px #f00';
-        revealed = true;
-        setTimeout(() => {
-          secret.style.color = '#000';
-          secret.style.textShadow = 'none';
-          revealed = false;
-        }, 4000); // visible pendant 4 secondes
+    function lightning() {
+      // 1. Déclenche flash blanc
+      flash.style.opacity = 1;
+      document.body.classList.add('flicker');
+
+      // 2. Affiche une lettre aléatoire ou suivante
+      const letter = message[index];
+      if (letter && letter !== " ") {
+        flashLetter.textContent = letter;
+        flashLetter.style.opacity = 1;
       }
-    });
+      index = (index + 1) % message.length;
 
-    console.log("Astuce : essaye de maintenir ton doigt sur l’écran...");
+      // 3. Retire après 200ms
+      setTimeout(() => {
+        flash.style.opacity = 0;
+        flashLetter.style.opacity = 0;
+        document.body.classList.remove('flicker');
+      }, 200);
+    }
+
+    // Lancer un éclair toutes les 10 secondes
+    setInterval(lightning, 10000);
+
+    // Premier éclair rapide au bout de 3s pour démarrer l’ambiance
+    setTimeout(lightning, 3000);
   </script>
 </body>
 </html>
