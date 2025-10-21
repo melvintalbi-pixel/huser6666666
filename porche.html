@@ -1,39 +1,196 @@
-<!-- frontend.html -->
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
-<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>huser chat</title>
-<style>/* (style minimal, same as before) */:root{--bg:#070607;--accent:#941F06}html,body{height:100%;margin:0;font-family:system-ui;background:var(--bg);color:#eee} .wrap{max-width:800px;margin:0 auto;display:flex;flex-direction:column;height:100vh} header{padding:14px;text-align:center;color:var(--accent)} #chat{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px} .msg{max-width:75%;padding:12px;border-radius:10px} .bot{background:rgba(148,31,6,0.06);align-self:flex-start} .user{background:rgba(255,255,255,0.03);align-self:flex-end} footer{display:flex;gap:8px;padding:12px} input{flex:1;padding:12px;border-radius:8px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.06)} button{padding:10px 12px;background:var(--accent);border:none;color:#fff;border-radius:8px}</style>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>.huser6666666</title>
+<style>
+  :root {
+    --bg: #000;
+    --accent: #941F06;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: #eee;
+    font-family: 'Courier New', monospace;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  header {
+    color: var(--accent);
+    text-align: center;
+    padding: 15px;
+    border-bottom: 1px solid #111;
+    letter-spacing: 2px;
+  }
+
+  #chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .msg {
+    max-width: 80%;
+    padding: 10px 15px;
+    border-radius: 8px;
+    line-height: 1.4;
+  }
+
+  .bot {
+    background: rgba(148, 31, 6, 0.08);
+    align-self: flex-start;
+    border: 1px solid rgba(148, 31, 6, 0.05);
+  }
+
+  .user {
+    background: rgba(255, 255, 255, 0.05);
+    align-self: flex-end;
+  }
+
+  footer {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    border-top: 1px solid #111;
+    background: rgba(0, 0, 0, 0.7);
+  }
+
+  input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #222;
+    background: #111;
+    color: #fff;
+    font-family: inherit;
+  }
+
+  button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  a.link {
+    color: #fff;
+    text-decoration: underline;
+  }
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <header>.huser6666666 — parle-lui</header>
-    <div id="chat"><div class="msg bot">.un souffle froid traverse la pièce. qui ose réveiller la nuit ?</div><div class="msg bot">.donne un nom de personnage fictif et coche la case pour confirmer.</div></div>
-    <div style="padding:8px 14px;color:#bbb">ne partage pas d'informations réelles.</div>
-    <div style="display:flex;align-items:center;gap:8px;padding:8px 14px;color:#bbb"><input type="checkbox" id="confirmFict"/><label for="confirmFict">je confirme que le nom est fictif</label></div>
-    <footer><input id="input" placeholder="nom du personnage..." /><button id="send">envoyer</button></footer>
-  </div>
+
+<header>.huser6666666</header>
+<div id="chat"></div>
+
+<footer>
+  <input id="input" placeholder="écris ta réponse..." autocomplete="off">
+  <button id="send">envoyer</button>
+</footer>
 
 <script>
-const chat=document.getElementById('chat'), input=document.getElementById('input'), send=document.getElementById('send'), cbox=document.getElementById('confirmFict');
+const chat = document.getElementById('chat');
+const input = document.getElementById('input');
+const send = document.getElementById('send');
 
-function addMsg(txt,who='bot'){const d=document.createElement('div');d.className='msg '+(who==='bot'?'bot':'user'); if(who==='bot'){ if(!txt.startsWith('.')) txt='.'+txt; txt=txt.toLowerCase(); } d.textContent=txt; chat.appendChild(d); chat.scrollTop=chat.scrollHeight; }
+// base de noms acceptés
+const NAMES = [
+  "shahfeez merouf", "eva de chalon", "hélène mc intosh",
+  "hugues carlow", "ariane price", "sir william saville",
+  "leer wilde", "von spanheim", "capitaine tregarne", "sergent mc gill"
+];
 
-send.addEventListener('click', async ()=>{
-  const v=input.value.trim(); if(!v) return;
-  addMsg(v,'user');
-  if(!cbox.checked){ addMsg("tu dois cocher la case confirmant que le nom est fictif.", 'bot'); input.value=''; return; }
-  try{
-    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:v,confirmFict:true})});
-    const j=await res.json();
-    if(j.reply) addMsg(j.reply,'bot');
-    if(j.redirect){
-      const d=document.createElement('div'); d.className='msg bot'; d.innerHTML = '.voici l\\'indice : <a href="'+j.redirect+'" target="_blank">regarder la vidéo</a>'; chat.appendChild(d); chat.scrollTop=chat.scrollHeight;
-    }
-  }catch(e){
-    addMsg('.erreur: impossible de joindre le serveur.','bot');
+// mapping nom → vidéo
+const VIDEO = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+
+// questions prédéfinies (aléatoires)
+const QUESTIONS = [
+  ".entends-tu les voix, toi aussi ?",
+  ".que vois-tu quand tu fermes les yeux ?",
+  ".as-tu déjà senti la pièce devenir froide soudainement ?",
+  ".quel est ton plus grand regret ?",
+  ".si la mort te parlait, que lui dirais-tu ?",
+  ".as-tu peur du noir ?",
+  ".depuis combien de temps es-tu ici ?",
+  ".crois-tu aux fantômes ?"
+];
+
+// petite fonction utilitaire pour ajout message
+function addMsg(text, who = 'bot') {
+  const div = document.createElement('div');
+  div.className = 'msg ' + (who === 'bot' ? 'bot' : 'user');
+  if (who === 'bot') {
+    if (!text.startsWith('.')) text = '.' + text;
+    text = text.toLowerCase();
   }
-  input.value='';
-});
+  div.textContent = text;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+// état du dialogue
+let step = 0;
+let awaitingName = false;
+
+// lancement du dialogue
+addMsg(".bonsoir.");
+setTimeout(() => addMsg(".je t'observe depuis un moment."), 1500);
+setTimeout(() => nextQuestion(), 3000);
+
+// envoie utilisateur
+send.addEventListener('click', handleSend);
+input.addEventListener('keydown', e => { if (e.key === 'Enter') handleSend(); });
+
+function handleSend() {
+  const val = input.value.trim();
+  if (!val) return;
+  addMsg(val, 'user');
+  input.value = '';
+
+  if (awaitingName) {
+    checkName(val);
+  } else {
+    setTimeout(nextQuestion, 1000);
+  }
+}
+
+// poser la prochaine question
+function nextQuestion() {
+  if (step < 5) {
+    const q = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
+    addMsg(q);
+    step++;
+  } else {
+    addMsg(".mais au fait... quel est ton nom ?");
+    awaitingName = true;
+  }
+}
+
+// vérifie le nom entré
+function checkName(name) {
+  const normalized = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (NAMES.includes(normalized)) {
+    addMsg(`.je te vois, ${name.toLowerCase()}. regarde la vidéo...`);
+    const link = document.createElement('div');
+    link.className = 'msg bot';
+    link.innerHTML = `.voici l'indice : <a class="link" href="${VIDEO}" target="_blank">regarder la vidéo</a>`;
+    chat.appendChild(link);
+  } else {
+    addMsg(".ce nom ne m'est pas connu... essaie encore.");
+  }
+}
 </script>
+
 </body>
 </html>
