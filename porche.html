@@ -122,7 +122,7 @@ const input=document.getElementById('input');
 const send=document.getElementById('send');
 
 const NAMES=["shahfeez merouf","eva de chalon","hélène mc intosh","hugues carlow","ariane price","sir william saville","leer wilde","von spanheim","capitaine tregarne","sergent mc gill"];
-const VIDEO="https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+const VIDEO="https://melvintalbi-pixel.github.io/huser6666666/where.html";
 
 // toutes les questions de base
 let QUESTIONS=[
@@ -239,10 +239,10 @@ function nextQuestion(){
 function checkName(name){
   const norm=name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
   if(NAMES.includes(norm)){
-    addMsg(`.je te vois, ${name.toLowerCase()}. regarde la vidéo...`);
+    addMsg(`.je te vois, ${name.toLowerCase()}. rejoin moi...`);
     const link=document.createElement('div');
     link.className='msg bot';
-    link.innerHTML=`.voici l'indice : <a class="link" href="${VIDEO}" target="_blank">regarder la vidéo</a>`;
+    link.innerHTML=`.voici l'indice : <a class="link" href="${VIDEO}" target="_blank">rejoindre .huser6666666</a>`;
     chat.appendChild(link);
   }else{
     addMsg(".ce nom ne m'est pas connu... recommence.");
