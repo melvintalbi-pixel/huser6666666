@@ -24,11 +24,8 @@ h1 {
   margin-bottom: 20px;
 }
 #arrow {
-  width: 100px;
-  height: 100px;
-  background: url('https://upload.wikimedia.org/wikipedia/commons/3/3c/Arrow_up_font_awesome.svg') no-repeat center;
-  background-size: contain;
-  transform: rotate(0deg);
+  width: 120px;
+  height: 120px;
   transition: transform 0.1s linear;
   filter: drop-shadow(0 0 10px #941F06);
 }
@@ -37,25 +34,42 @@ h1 {
   font-size: 1.1em;
   color: #fff;
 }
+svg {
+  width: 100%;
+  height: 100%;
+  fill: #941F06;
+}
+.tap {
+  position: fixed;
+  bottom: 15px;
+  font-size: 0.9em;
+  color: #941F06;
+  opacity: 0.8;
+}
 </style>
 </head>
 <body>
   <h1>.suis la flèche</h1>
-  <div id="arrow"></div>
+  <div id="arrow">
+    <!-- Flèche rouge intégrée en SVG -->
+    <svg viewBox="0 0 24 24">
+      <path d="M12 2L4 10h5v10h6V10h5L12 2z"/>
+    </svg>
+  </div>
   <div id="status">activation du GPS...</div>
+  <div class="tap">(tape l’écran pour activer le GPS et la boussole)</div>
 
 <script>
-// 🎯 Coordonnées de la destination (ex : l'église de Cormeilles-en-Vexin)
-const target = { lat: 49.100943002431, lon: 1.962819016521 }; // modifie ces valeurs selon ton lieu réel
+// 🎯 Coordonnées de la destination (ex : église de Cormeilles-en-Vexin)
+const target = { lat: 49.100943002431, lon: 1.962819016521 }; // 🧭 change ici
 let currentPos = null;
 let currentHeading = 0;
 
-// 🔁 Calcul de la distance et de l’angle
 function toRad(deg) { return deg * Math.PI / 180; }
 function toDeg(rad) { return rad * 180 / Math.PI; }
 
 function distance(lat1, lon1, lat2, lon2) {
-  const R = 6371e3; // m
+  const R = 6371e3;
   const φ1 = toRad(lat1), φ2 = toRad(lat2);
   const Δφ = toRad(lat2 - lat1);
   const Δλ = toRad(lon2 - lon1);
@@ -71,7 +85,6 @@ function bearing(lat1, lon1, lat2, lon2) {
   return (toDeg(Math.atan2(y, x)) + 360) % 360;
 }
 
-// 🧭 Boussole
 function handleOrientation(event) {
   if (event.absolute || event.webkitCompassHeading) {
     currentHeading = event.webkitCompassHeading || 360 - event.alpha;
@@ -79,7 +92,6 @@ function handleOrientation(event) {
   updateArrow();
 }
 
-// 📍 Localisation
 function handlePosition(pos) {
   currentPos = pos.coords;
   updateArrow();
@@ -91,26 +103,33 @@ function updateArrow() {
   const bear = bearing(currentPos.latitude, currentPos.longitude, target.lat, target.lon);
   const angle = (bear - currentHeading + 360) % 360;
   document.getElementById('arrow').style.transform = `rotate(${angle}deg)`;
+  
   const status = document.getElementById('status');
   if (dist > 50) status.textContent = `.encore ${Math.round(dist)} mètres...`;
   else if (dist > 10) status.textContent = ".tu approches...";
   else status.textContent = ".regarde autour de toi...";
 }
 
-// 🔓 Demande d’autorisations
-if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
-  document.body.addEventListener('click', () => {
+// 🔓 iOS nécessite une interaction avant DeviceOrientation
+function init() {
+  document.querySelector('.tap').style.display = 'none';
+  if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
     DeviceOrientationEvent.requestPermission().then(permissionState => {
       if (permissionState === 'granted') {
         window.addEventListener('deviceorientation', handleOrientation, true);
-      }
+      } else alert("Autorise la boussole pour jouer !");
     });
-    navigator.geolocation.watchPosition(handlePosition, e => alert("Erreur GPS"), { enableHighAccuracy: true });
-  }, { once: true });
-} else {
-  window.addEventListener('deviceorientation', handleOrientation, true);
-  navigator.geolocation.watchPosition(handlePosition, e => alert("Erreur GPS"), { enableHighAccuracy: true });
+  } else {
+    window.addEventListener('deviceorientation', handleOrientation, true);
+  }
+
+  navigator.geolocation.watchPosition(handlePosition, e => {
+    document.getElementById('status').textContent = "GPS indisponible...";
+  }, { enableHighAccuracy: true });
 }
+
+// Démarre au clic
+document.body.addEventListener('click', init, { once: true });
 </script>
 </body>
 </html>
