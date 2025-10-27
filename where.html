@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>.huser6666666 - Suis la flèche</title>
+<style>
+body {
+  background: #000;
+  color: #eee;
+  font-family: 'Courier New', monospace;
+  text-align: center;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+h1 {
+  color: #941F06;
+  letter-spacing: 2px;
+  font-size: 1.5em;
+  margin-bottom: 20px;
+}
+#arrow {
+  width: 100px;
+  height: 100px;
+  background: url('https://upload.wikimedia.org/wikipedia/commons/3/3c/Arrow_up_font_awesome.svg') no-repeat center;
+  background-size: contain;
+  transform: rotate(0deg);
+  transition: transform 0.1s linear;
+  filter: drop-shadow(0 0 10px #941F06);
+}
+#status {
+  margin-top: 20px;
+  font-size: 1.1em;
+  color: #fff;
+}
+</style>
+</head>
+<body>
+  <h1>.suis la flèche</h1>
+  <div id="arrow"></div>
+  <div id="status">activation du GPS...</div>
+
+<script>
+// 🎯 Coordonnées de la destination (ex : l'église de Cormeilles-en-Vexin)
+const target = { lat: 49.100943002431, lon: 1.962819016521 }; // modifie ces valeurs selon ton lieu réel
+let currentPos = null;
+let currentHeading = 0;
+
+// 🔁 Calcul de la distance et de l’angle
+function toRad(deg) { return deg * Math.PI / 180; }
+function toDeg(rad) { return rad * 180 / Math.PI; }
+
+function distance(lat1, lon1, lat2, lon2) {
+  const R = 6371e3; // m
+  const φ1 = toRad(lat1), φ2 = toRad(lat2);
+  const Δφ = toRad(lat2 - lat1);
+  const Δλ = toRad(lon2 - lon1);
+  const a = Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function bearing(lat1, lon1, lat2, lon2) {
+  const φ1 = toRad(lat1), φ2 = toRad(lat2);
+  const Δλ = toRad(lon2 - lon1);
+  const y = Math.sin(Δλ) * Math.cos(φ2);
+  const x = Math.cos(φ1)*Math.sin(φ2) - Math.sin(φ1)*Math.cos(φ2)*Math.cos(Δλ);
+  return (toDeg(Math.atan2(y, x)) + 360) % 360;
+}
+
+// 🧭 Boussole
+function handleOrientation(event) {
+  if (event.absolute || event.webkitCompassHeading) {
+    currentHeading = event.webkitCompassHeading || 360 - event.alpha;
+  }
+  updateArrow();
+}
+
+// 📍 Localisation
+function handlePosition(pos) {
+  currentPos = pos.coords;
+  updateArrow();
+}
+
+function updateArrow() {
+  if (!currentPos) return;
+  const dist = distance(currentPos.latitude, currentPos.longitude, target.lat, target.lon);
+  const bear = bearing(currentPos.latitude, currentPos.longitude, target.lat, target.lon);
+  const angle = (bear - currentHeading + 360) % 360;
+  document.getElementById('arrow').style.transform = `rotate(${angle}deg)`;
+  const status = document.getElementById('status');
+  if (dist > 50) status.textContent = `.encore ${Math.round(dist)} mètres...`;
+  else if (dist > 10) status.textContent = ".tu approches...";
+  else status.textContent = ".regarde autour de toi...";
+}
+
+// 🔓 Demande d’autorisations
+if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
+  document.body.addEventListener('click', () => {
+    DeviceOrientationEvent.requestPermission().then(permissionState => {
+      if (permissionState === 'granted') {
+        window.addEventListener('deviceorientation', handleOrientation, true);
+      }
+    });
+    navigator.geolocation.watchPosition(handlePosition, e => alert("Erreur GPS"), { enableHighAccuracy: true });
+  }, { once: true });
+} else {
+  window.addEventListener('deviceorientation', handleOrientation, true);
+  navigator.geolocation.watchPosition(handlePosition, e => alert("Erreur GPS"), { enableHighAccuracy: true });
+}
+</script>
+</body>
+</html>
