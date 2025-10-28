@@ -1,271 +1,191 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
-<title>.huser6666666 — expérience</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>.huser6666666. Bonjour Christilla. .allons-y.</title>
 <style>
-  :root{
-    --bg:#000; --accent:#941F06; --danger:#ff0033;
-    --muted:#222; --user:#00FF80;
-  }
-  html,body{height:100%;margin:0;background:var(--bg);color:#eee;font-family: "Courier New", monospace;}
-  .wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px;box-sizing:border-box}
-  h1{color:var(--accent);letter-spacing:2px;margin:0 0 12px 0}
-  p{color:#bbb;margin:0 0 12px 0;text-align:center;max-width:480px}
-  .controls{display:flex;gap:8px;margin-bottom:12px}
-  button{background:var(--accent);color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;font-size:16px}
-  #panic{background:var(--danger);box-shadow:0 0 20px rgba(255,0,51,0.25)}
-  /* overlay corruption */
-  .overlay{pointer-events:none;position:fixed;inset:0;z-index:40;mix-blend-mode:screen}
-  .glitch{position:absolute;inset:0;background:transparent;opacity:0;transition:opacity .2s;}
-  .stain{position:absolute;pointer-events:none;opacity:0;transition:opacity .3s;filter:blur(6px) saturate(1.2)}
-  /* message box fake SMS */
-  .fake-sms{position:fixed;left:50%;top:10%;transform:translateX(-50%);background:#0f0f0f;border:2px solid rgba(148,31,6,.4);padding:12px;border-radius:8px;z-index:50;display:none;min-width:240px}
-  .fake-sms h3{margin:0;color:var(--accent);font-size:14px}
-  .secret{margin-top:10px;color:#fff}
-  /* camera canvas */
-  #camCanvas{display:block;width:80vw;max-width:360px;border:2px solid rgba(255,255,255,0.03);border-radius:8px;margin-top:12px}
-  footer{position:fixed;bottom:8px;left:8px;color:#666;font-size:12px}
+body {
+  background: #000;
+  color: #eee;
+  font-family: 'Courier New', monospace;
+  text-align: center;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+h1 {
+  color: #941F06;
+  letter-spacing: 2px;
+  font-size: 1.5em;
+  margin-bottom: 20px;
+}
+#arrow {
+  width: 120px;
+  height: 120px;
+  transition: transform 0.1s linear;
+  filter: drop-shadow(0 0 10px #941F06);
+}
+#status {
+  margin-top: 20px;
+  font-size: 1.1em;
+  color: #fff;
+}
+svg {
+  width: 100%;
+  height: 100%;
+  fill: #941F06;
+}
+.tap {
+  position: fixed;
+  bottom: 15px;
+  font-size: 0.9em;
+  color: #fff;
+  opacity: 0.8;
+}
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>.huser6666666</h1>
-    <p>tape pour activer l'expérience. tant que tu es là, je t'entends. (bouton rouge = stop immédiat)</p>
-    <div class="controls">
-      <button id="start">activer</button>
-      <button id="panic">PANIC - stop</button>
-      <button id="fakeSMSBtn">simuler SMS</button>
-    </div>
-
-    <div id="status" style="color:#bbb">inactif</div>
-
-    <!-- camera canvas -->
-    <canvas id="camCanvas" class="hidden" width="640" height="480"></canvas>
-
-    <!-- overlays -->
-    <div class="overlay" id="overlay">
-      <div id="glitch1" class="glitch"></div>
-      <svg id="stains" class="stain" viewBox="0 0 600 400" style="width:100%;height:100%">
-        <!-- stylized shapes (non-graphic) -->
-        <path d="M120 60 C 200 20, 260 20, 320 60 C 360 90, 420 150, 300 200 C 200 230, 140 180, 120 140" fill="rgba(180,0,0,0.6)"/>
-        <path d="M420 80 C 480 50, 540 60, 560 120 C 540 170, 480 190, 420 150 C 380 130, 400 100, 420 80" fill="rgba(200,0,40,0.5)"/>
-      </svg>
-    </div>
-
-    <div class="fake-sms" id="fakeSMS">
-      <h3>.huser6666666</h3>
-      <div class="secret" id="fakeText">.je te vois.</div>
-    </div>
-
+  <h1>.huser6666666. Bonjour Christilla. .allons-y.</h1>
+  <div id="arrow">
+    <svg viewBox="0 0 24 24">
+      <path d="M12 2L4 10h5v10h6V10h5L12 2z"/>
+    </svg>
   </div>
-
-  <footer>mode test — garde un complice prêt à couper</footer>
+  <div id="status">activation du GPS...</div>
+  <div class="tap">(tape l’écran pour activer le GPS et la boussole)</div>
 
 <script>
-/* ---------- CONFIG - remplace par tes fichiers audio ---------- */
-const AMBIENT_URL = "https://example.com/ambient_loop.mp3";   // basse/ambiance (faible)
-const WHISPER_URL = "https://example.com/whisper_loop.mp3";   // chuchotements courts (panning)
-const SCREAM_URL  = "https://example.com/scream.mp3";        // jump-scare son fort
-/* ------------------------------------------------------------ */
+// === CONFIG ===
+const target = { lat: 49.033094, lon: 2.077448 }; // 🧭 change ici
+const sound100 = "https://www.chosic.com/wp-content/uploads/2023/06/heartbeat-soundsmith-1(chosic.com).mp3"; // battement lent
+const sound50  = "https://www.chosic.com/wp-content/uploads/2023/06/heartbeat-soundsmith(chosic.com).mp3"; // battement rapide
+const horror20 = "https://www.chosic.com/wp-content/uploads/2022/10/its-in-the-fog(chosic.com).mp3";    // musique horreur
+// ==============
 
-let audioCtx, ambientNode, whisperNode, masterGain;
-let started = false;
-let camStream = null;
-let camPlaying = false;
-let panicMode = false;
+let currentPos = null;
+let currentHeading = 0;
+let currentZone = null; // "none" | "100" | "50" | "20"
+let playersAudio = {};
 
-/* util: create audio element + WebAudio node */
-async function startAudio() {
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  masterGain = audioCtx.createGain(); masterGain.gain.value = 0.9;
-  masterGain.connect(audioCtx.destination);
+function toRad(deg){ return deg * Math.PI/180; }
+function toDeg(rad){ return rad * 180/Math.PI; }
 
-  // ambient (loop)
-  const amb = new Audio(AMBIENT_URL); amb.loop = true; amb.crossOrigin="anonymous";
-  const ambNode = audioCtx.createMediaElementSource(amb);
-  const ambGain = audioCtx.createGain(); ambGain.gain.value = 0.35;
-  ambNode.connect(ambGain); ambGain.connect(masterGain);
-  amb.play().catch(()=>{/* user gesture needed but we call after click */});
-  ambientNode = { audio: amb, node: ambNode, gain: ambGain };
-
-  // whisper (stereo panner + loop)
-  const wh = new Audio(WHISPER_URL); wh.loop = true; wh.crossOrigin="anonymous";
-  const whNode = audioCtx.createMediaElementSource(wh);
-  const panner = audioCtx.createStereoPanner(); panner.pan.value = -0.7;
-  const whGain = audioCtx.createGain(); whGain.gain.value = 0.0; // start silent
-  whNode.connect(panner); panner.connect(whGain); whGain.connect(masterGain);
-  wh.play();
-  whisperNode = { audio: wh, node: whNode, panner, gain: whGain };
-
-  // slowly ramp whisper in/out pattern
-  let dir = 1;
-  setInterval(()=>{
-    if(panicMode) return;
-    const newGain = whisperNode.gain.gain.value + 0.12*dir;
-    whisperNode.gain.gain.value = Math.max(0, Math.min(0.6, newGain));
-    if(newGain >= 0.6) dir = -1;
-    if(newGain <= 0) dir = 1;
-    // alternate pan
-    whisperNode.panner.pan.value = (Math.random()>0.5) ? -0.9 : 0.9;
-  }, 3500);
+function distance(lat1, lon1, lat2, lon2){
+  const R=6371e3;
+  const φ1=toRad(lat1), φ2=toRad(lat2);
+  const Δφ=toRad(lat2-lat1), Δλ=toRad(lon2-lon1);
+  const a=Math.sin(Δφ/2)**2+Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function bearing(lat1,lon1,lat2,lon2){
+  const φ1=toRad(lat1), φ2=toRad(lat2);
+  const Δλ=toRad(lon2-lon1);
+  const y=Math.sin(Δλ)*Math.cos(φ2);
+  const x=Math.cos(φ1)*Math.sin(φ2)-Math.sin(φ1)*Math.cos(φ2)*Math.cos(Δλ);
+  return (toDeg(Math.atan2(y,x))+360)%360;
 }
 
-/* start camera + distort on canvas */
-async function startCamera() {
-  const canvas = document.getElementById('camCanvas');
-  try {
-    camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
-    const v = document.createElement('video');
-    v.srcObject = camStream;
-    v.play();
-    canvas.classList.remove('hidden');
-    const ctx = canvas.getContext('2d');
-    function draw(){
-      if(panicMode) return;
-      if(v.readyState >= 2){
-        // draw with distortions
-        ctx.save();
-        ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
-        // simple glitch: copy slices
-        for(let i=0;i<3;i++){
-          const sy = Math.random()*canvas.height;
-          const sh = 20 + Math.random()*40;
-          const dx = (Math.random()-0.5)*8;
-          ctx.globalAlpha = 0.55;
-          ctx.drawImage(canvas, 0, sy, canvas.width, sh, dx, sy, canvas.width, sh);
-          ctx.globalAlpha = 1;
-        }
-        // colorize reddish
-        const img = ctx.getImageData(0,0,canvas.width,canvas.height);
-        for(let i=0;i<img.data.length;i+=4){
-          img.data[i] = Math.min(255, img.data[i]*1.2 + 20); // R up
-          img.data[i+1] = img.data[i+1]*0.7; // G down
-          img.data[i+2] = img.data[i+2]*0.7; // B down
-        }
-        ctx.putImageData(img,0,0);
-        ctx.restore();
-      }
-      requestAnimationFrame(draw);
-    }
-    draw();
-    camPlaying = true;
-  } catch(e){
-    console.warn("cam denied", e);
+function handleOrientation(event){
+  if(event.absolute || event.webkitCompassHeading){
+    currentHeading = event.webkitCompassHeading || 360 - event.alpha;
+  }
+  updateArrow();
+}
+
+function handlePosition(pos){
+  currentPos = pos.coords;
+  updateArrow();
+}
+
+function updateArrow(){
+  if(!currentPos) return;
+  const dist = distance(currentPos.latitude, currentPos.longitude, target.lat, target.lon);
+  const bear = bearing(currentPos.latitude, currentPos.longitude, target.lat, target.lon);
+  const angle = (bear - currentHeading + 360) % 360;
+  document.getElementById('arrow').style.transform = `rotate(${angle}deg)`;
+
+  const status = document.getElementById('status');
+
+  if(dist > 100){
+    status.textContent = `.encore ${Math.round(dist)} mètres...`;
+    switchZone("none");
+  } else if(dist > 50){
+    status.textContent = ".tu t'approches...";
+    switchZone("100");
+  } else if(dist > 20){
+    status.textContent = ".je sens ton souffle...";
+    switchZone("50");
+  } else {
+    status.textContent = ".regarde autour de toi... la croix t'attend.";
+    switchZone("20");
   }
 }
 
-/* glitch overlay effects */
-function glitchPulse(){
-  const g = document.getElementById('glitch1');
-  g.style.opacity = 0.3;
-  g.style.background = "repeating-linear-gradient(90deg, rgba(255,0,0,0.06), rgba(255,0,0,0.06) 2px, rgba(0,0,0,0.02) 2px, rgba(0,0,0,0.02) 4px)";
-  setTimeout(()=> g.style.opacity = 0, 260);
-}
-function showStain(){
-  const s = document.getElementById('stains');
-  s.style.opacity = 1;
-  setTimeout(()=> s.style.opacity = 0, 2000);
+// === Gestion audio par zone ===
+function playLoop(id, url, volume=0.7){
+  if(playersAudio[id]) return;
+  const a = new Audio(url);
+  a.loop = true;
+  a.volume = volume;
+  a.play().catch(()=>{});
+  playersAudio[id] = a;
 }
 
-/* panic: stop everything */
-function panicStop(){
-  panicMode = true;
-  document.getElementById('status').textContent = "arrêté";
-  // stop audio
-  try{
-    if(ambientNode && ambientNode.audio) ambientNode.audio.pause();
-    if(whisperNode && whisperNode.audio) whisperNode.audio.pause();
-  }catch(e){}
-  // stop camera
-  try{ if(camStream) camStream.getTracks().forEach(t=>t.stop()); }catch(e){}
-  // hide overlays
-  document.getElementById('overlay').style.display = "none";
-  document.getElementById('fakeSMS').style.display = "none";
-  // vibrate short stop
-  if(navigator.vibrate) navigator.vibrate([100,50,30]);
-}
-
-/* jump-scare (flash + scream + vibrate) */
-async function jumpScare() {
-  if(panicMode) return;
-  // flash overlay red fullscreen
-  const body = document.body;
-  const flash = document.createElement('div');
-  flash.style.position='fixed'; flash.style.inset=0; flash.style.zIndex=9999;
-  flash.style.background='radial-gradient(circle at center, rgba(255,0,0,0.95), rgba(0,0,0,0.8))';
-  flash.style.display='flex'; flash.style.alignItems='center'; flash.style.justifyContent='center';
-  flash.style.fontSize='calc(10vw + 20px)'; flash.style.color='#fff'; flash.style.fontFamily='monospace';
-  flash.textContent = '.tu es trop proche.';
-  body.appendChild(flash);
-  // play scream
-  const sfx = new Audio(SCREAM_URL);
-  sfx.play().catch(()=>{});
-  if(navigator.vibrate) navigator.vibrate([200,100,200,100]);
-  // show stains
-  showStain();
-  // remove after 2.5s
-  setTimeout(()=> { flash.remove(); }, 2500);
-}
-
-/* fake SMS popup */
-function showFakeSMS(text){
-  const box = document.getElementById('fakeSMS');
-  document.getElementById('fakeText').textContent = text;
-  box.style.display = 'block';
-  setTimeout(()=> box.style.display = 'none', 5500);
-}
-
-/* orchestrateur de peur (random events) */
-let eventTimer;
-function startScares(){
-  if(panicMode) return;
-  // schedule random events
-  eventTimer = setInterval(()=>{
-    const r = Math.random();
-    if(r < 0.15){
-      glitchPulse();
-      if(Math.random() < 0.6) showFakeSMS(".je t'entends.");
-    } else if(r < 0.35){
-      if(whisperNode) whisperNode.gain.gain.value = 0.8;
-      setTimeout(()=> { if(whisperNode) whisperNode.gain.gain.value = 0.0; }, 2500);
-    } else if(r < 0.47){
-      if(navigator.vibrate) navigator.vibrate([120,60,120]);
-    } else if(r < 0.52){
-      jumpScare();
-    } else {
-      // small camera glitch
-      glitchPulse();
+function stopAll(except){
+  for(const [k,a] of Object.entries(playersAudio)){
+    if(k !== except){
+      a.pause();
+      delete playersAudio[k];
     }
-  }, 4000 + Math.random()*6000);
+  }
 }
 
-/* start everything on user click */
-document.getElementById('start').addEventListener('click', async ()=>{
-  if(started) return;
-  started = true;
-  document.getElementById('status').textContent = "activation en cours...";
-  await startAudio().catch(()=>{/* ignore */});
-  await startCamera().catch(()=>{/* ignore */});
-  document.getElementById('overlay').style.display = 'block';
-  document.getElementById('status').textContent = "tu es entendu.";
-  startScares();
-});
+function switchZone(zone){
+  if(zone === currentZone) return;
+  currentZone = zone;
+  stopAll();
+  if(zone === "100"){
+    playLoop("beat100", sound100, 0.6);
+  } else if(zone === "50"){
+    playLoop("beat50", sound50, 0.8);
+  } else if(zone === "20"){
+    const a = new Audio(horror20);
+    a.loop = false;
+    a.volume = 1.0;
+    a.play().catch(()=>{});
+    playersAudio["horror20"] = a;
+  }
+}
 
-/* panic button */
-document.getElementById('panic').addEventListener('click', ()=> {
-  panicStop();
-  clearInterval(eventTimer);
-});
+// === Init & permissions ===
+function init(){
+  document.querySelector('.tap').style.display='none';
 
-/* fake SMS button for testing */
-document.getElementById('fakeSMSBtn').addEventListener('click', ()=> showFakeSMS(".je sais où tu es."));
+  if(window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission==='function'){
+    DeviceOrientationEvent.requestPermission().then(state=>{
+      if(state==='granted'){
+        window.addEventListener('deviceorientation', handleOrientation, true);
+      } else alert("Autorise la boussole pour jouer !");
+    });
+  } else {
+    window.addEventListener('deviceorientation', handleOrientation, true);
+  }
 
-/* cleanup on leave */
-window.addEventListener('beforeunload', ()=> {
-  panicStop();
-});
+  navigator.geolocation.watchPosition(handlePosition, e=>{
+    document.getElementById('status').textContent="GPS indisponible...";
+  }, {enableHighAccuracy:true});
+
+  // léger fondu de démarrage
+  const start = new Audio(sound100);
+  start.volume=0.2;
+  start.play().catch(()=>{});
+}
+
+document.body.addEventListener('click', init, {once:true});
 </script>
 </body>
 </html>
