@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>.huser6666666. Bonjour Florian .allons-y.</title>
+<style>
+body {
+  background: #000;
+  color: #eee;
+  font-family: 'Courier New', monospace;
+  text-align: center;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  transition: background 0.2s;
+}
+
+h1 {
+  color: #941F06;
+  letter-spacing: 2px;
+  font-size: 1.5em;
+  margin-bottom: 20px;
+}
+
+#arrow {
+  width: 120px;
+  height: 120px;
+  transition: transform 0.1s linear;
+  filter: drop-shadow(0 0 10px #941F06);
+}
+
+#status {
+  margin-top: 20px;
+  font-size: 1.1em;
+  color: #fff;
+}
+
+#distance {
+  margin-top: 5px;
+  font-size: 0.9em;
+  color: #aaa;
+}
+
+svg {
+  width: 100%;
+  height: 100%;
+  fill: #941F06;
+}
+
+.tap {
+  position: fixed;
+  bottom: 15px;
+  font-size: 0.9em;
+  color: #fff;
+  opacity: 0.8;
+}
+</style>
+</head>
+<body>
+  <h1>.huser6666666. Bonjour Florian .allons-y, il fait froid.</h1>
+  <div id="arrow">
+    <svg viewBox="0 0 24 24">
+      <path d="M12 2L4 10h5v10h6V10h5L12 2z"/>
+    </svg>
+  </div>
+  <div id="status">activation du GPS...</div>
+  <div id="distance"></div>
+  <div class="tap">(tape l’écran pour activer le GPS et la boussole)</div>
+
+<script>
+// === CONFIG ===
+const target = { lat: 49.1158769, lon: 2.0223862 };
+const horror20 = "https://www.chosic.com/wp-content/uploads/2022/10/its-in-the-fog(chosic.com).mp3";
+// ==============
+
+let currentPos = null;
+let currentHeading = 0;
+let musicStarted = false;
+let flashing = false;
+let flashInterval = null;
+
+// === UTILS ===
+function toRad(deg){ return deg*Math.PI/180; }
+function toDeg(rad){ return rad*180/Math.PI; }
+
+function distance(lat1,lon1,lat2,lon2){
+  const R=6371e3;
+  const φ1=toRad(lat1), φ2=toRad(lat2);
+  const Δφ=toRad(lat2-lat1), Δλ=toRad(lon2-lon1);
+  const a=Math.sin(Δφ/2)**2+Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function bearing(lat1,lon1,lat2,lon2){
+  const φ1=toRad(lat1), φ2=toRad(lat2);
+  const Δλ=toRad(lon2-lon1);
+  const y=Math.sin(Δλ)*Math.cos(φ2);
+  const x=Math.cos(φ1)*Math.sin(φ2)-Math.sin(φ1)*Math.cos(φ2)*Math.cos(Δλ);
+  return (toDeg(Math.atan2(y,x))+360)%360;
+}
+
+// === HANDLERS ===
+function handleOrientation(e){
+  if(e.absolute || e.webkitCompassHeading){
+    currentHeading = e.webkitCompassHeading || 360 - e.alpha;
+  }
+  updateArrow();
+}
+
+function handlePosition(pos){
+  currentPos = pos.coords;
+  updateArrow();
+}
+
+// === MAIN UPDATE ===
+function updateArrow(){
+  if(!currentPos) return;
+
+  const dist = distance(currentPos.latitude, currentPos.longitude, target.lat, target.lon);
+  const bear = bearing(currentPos.latitude, currentPos.longitude, target.lat, target.lon);
+  const angle = (bear - currentHeading + 360) % 360;
+  
+  document.getElementById('arrow').style.transform = `rotate(${angle}deg)`;
+  document.getElementById('distance').textContent = `distance : ${Math.round(dist)} mètres`;
+
+  const status = document.getElementById('status');
+
+  // messages
+  if(dist > 50) {
+    status.textContent = `.encore ${Math.round(dist)} mètres...`;
+    stopFlashing();
+  } 
+  else if(dist > 20) {
+    status.textContent = ".tu y es presque...";
+    startFlashing();
+  } 
+  else {
+    status.textContent = ".regarde autour de toi... la croix t’attend.";
+    document.getElementById('distance').textContent = "📸 envoie la photo à .huser6666666";
+    stopFlashing();
+    document.body.style.background = "#941F06";
+  }
+}
+
+// === FLASH EFFECT ===
+function startFlashing(){
+  if(flashing) return;
+  flashing = true;
+  flashInterval = setInterval(()=>{
+    document.body.style.background = document.body.style.background === "#000" ? "#300" : "#000";
+  }, 200);
+}
+function stopFlashing(){
+  if(!flashing) return;
+  flashing = false;
+  clearInterval(flashInterval);
+  document.body.style.background = "#000";
+}
+
+// === INIT ===
+function init(){
+  document.querySelector('.tap').style.display = 'none';
+
+  // musique
+  if(!musicStarted){
+    const music = new Audio(horror20);
+    music.loop = true;
+    music.volume = 1.0;
+    music.play().catch(()=>console.log("Audio bloqué par le navigateur."));
+    musicStarted = true;
+  }
+
+  // boussole
+  if(window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission==='function'){
+    DeviceOrientationEvent.requestPermission().then(state=>{
+      if(state==='granted'){
+        window.addEventListener('deviceorientation', handleOrientation, true);
+      } else alert("Autorise la boussole pour jouer !");
+    });
+  } else {
+    window.addEventListener('deviceorientation', handleOrientation, true);
+  }
+
+  // GPS
+  navigator.geolocation.watchPosition(handlePosition, e=>{
+    document.getElementById('status').textContent="GPS indisponible...";
+  }, {enableHighAccuracy:true});
+}
+
+document.body.addEventListener('click', init, {once:true});
+</script>
+</body>
+</html>
