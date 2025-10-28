@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>.huser6666666. Bonjour Noé. .allons-y.</title>
+<style>
+body {
+  background: #000;
+  color: #eee;
+  font-family: 'Courier New', monospace;
+  text-align: center;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+h1 {
+  color: #941F06;
+  letter-spacing: 2px;
+  font-size: 1.5em;
+  margin-bottom: 20px;
+}
+#arrow {
+  width: 120px;
+  height: 120px;
+  transition: transform 0.1s linear;
+  filter: drop-shadow(0 0 10px #941F06);
+}
+#status {
+  margin-top: 20px;
+  font-size: 1.1em;
+  color: #fff;
+}
+svg {
+  width: 100%;
+  height: 100%;
+  fill: #941F06;
+}
+.tap {
+  position: fixed;
+  bottom: 15px;
+  font-size: 0.9em;
+  color: #fff;
+  opacity: 0.8;
+}
+</style>
+</head>
+<body>
+  <h1>.huser6666666. Bonjour Noé. .allons-y.</h1>
+  <div id="arrow">
+    <svg viewBox="0 0 24 24">
+      <path d="M12 2L4 10h5v10h6V10h5L12 2z"/>
+    </svg>
+  </div>
+  <div id="status">activation du GPS...</div>
+  <div class="tap">(tape l’écran pour activer le GPS et la boussole)</div>
+
+<script>
+const target = { lat: 45.095314, lon: 1.938388 };
+const horror20 = "https://www.chosic.com/wp-content/uploads/2022/10/its-in-the-fog(chosic.com).mp3";
+let currentPos = null;
+let currentHeading = 0;
+let musicStarted = false;
+
+// utils
+function toRad(deg){ return deg*Math.PI/180; }
+function toDeg(rad){ return rad*180/Math.PI; }
+function distance(lat1,lon1,lat2,lon2){
+  const R=6371e3;
+  const φ1=toRad(lat1), φ2=toRad(lat2);
+  const Δφ=toRad(lat2-lat1), Δλ=toRad(lon2-lon1);
+  const a=Math.sin(Δφ/2)**2+Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function bearing(lat1,lon1,lat2,lon2){
+  const φ1=toRad(lat1), φ2=toRad(lat2);
+  const Δλ=toRad(lon2-lon1);
+  const y=Math.sin(Δλ)*Math.cos(φ2);
+  const x=Math.cos(φ1)*Math.sin(φ2)-Math.sin(φ1)*Math.cos(φ2)*Math.cos(Δλ);
+  return (toDeg(Math.atan2(y,x))+360)%360;
+}
+
+function handleOrientation(e){
+  if(e.absolute || e.webkitCompassHeading){
+    currentHeading = e.webkitCompassHeading || 360 - e.alpha;
+  }
+  updateArrow();
+}
+function handlePosition(pos){
+  currentPos = pos.coords;
+  updateArrow();
+}
+function updateArrow(){
+  if(!currentPos) return;
+  const dist = distance(currentPos.latitude, currentPos.longitude, target.lat, target.lon);
+  const bear = bearing(currentPos.latitude, currentPos.longitude, target.lat, target.lon);
+  const angle = (bear - currentHeading + 360) % 360;
+  document.getElementById('arrow').style.transform = `rotate(${angle}deg)`;
+  const status = document.getElementById('status');
+  if(dist > 50) status.textContent = `.encore ${Math.round(dist)} mètres...`;
+  else if(dist > 20) status.textContent = ".tu y es presque...";
+  else status.textContent = ".regarde autour de toi... la croix t’attend.";
+}
+
+function init(){
+  document.querySelector('.tap').style.display = 'none';
+
+  // musique d'ambiance
+  if(!musicStarted){
+    const music = new Audio(horror20);
+    music.loop = true;
+    music.volume = 1.0;
+    music.play().catch(()=>console.log("Audio bloqué par le navigateur."));
+    musicStarted = true;
+  }
+
+  // boussole
+  if(window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission==='function'){
+    DeviceOrientationEvent.requestPermission().then(state=>{
+      if(state==='granted'){
+        window.addEventListener('deviceorientation', handleOrientation, true);
+      } else alert("Autorise la boussole pour jouer !");
+    });
+  } else {
+    window.addEventListener('deviceorientation', handleOrientation, true);
+  }
+
+  // GPS
+  navigator.geolocation.watchPosition(handlePosition, e=>{
+    document.getElementById('status').textContent="GPS indisponible...";
+  }, {enableHighAccuracy:true});
+}
+
+document.body.addEventListener('click', init, {once:true});
+</script>
+</body>
+</html>
