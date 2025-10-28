@@ -59,23 +59,20 @@ svg {
   <div class="tap">(tape l’écran pour activer le GPS et la boussole)</div>
 
 <script>
-// === CONFIG ===
-const target = { lat: 49.033094, lon: 2.077448 }; // 🧭 modifie ici
-const horror20 = "https://www.chosic.com/wp-content/uploads/2022/10/its-in-the-fog(chosic.com).mp3"; // musique horreur
-// ==============
-
+const target = { lat: 49.033094, lon: 2.077448 };
+const horror20 = "https://www.chosic.com/wp-content/uploads/2022/10/its-in-the-fog(chosic.com).mp3";
 let currentPos = null;
 let currentHeading = 0;
+let musicStarted = false;
 
-// Utilitaires géo
-function toRad(deg){ return deg * Math.PI/180; }
-function toDeg(rad){ return rad * 180/Math.PI; }
-
-function distance(lat1, lon1, lat2, lon2){
+// utils
+function toRad(deg){ return deg*Math.PI/180; }
+function toDeg(rad){ return rad*180/Math.PI; }
+function distance(lat1,lon1,lat2,lon2){
   const R=6371e3;
   const φ1=toRad(lat1), φ2=toRad(lat2);
   const Δφ=toRad(lat2-lat1), Δλ=toRad(lon2-lon1);
-  const a=Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
+  const a=Math.sin(Δφ/2)**2+Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 function bearing(lat1,lon1,lat2,lon2){
@@ -86,47 +83,41 @@ function bearing(lat1,lon1,lat2,lon2){
   return (toDeg(Math.atan2(y,x))+360)%360;
 }
 
-// Orientation et position
-function handleOrientation(event){
-  if(event.absolute || event.webkitCompassHeading){
-    currentHeading = event.webkitCompassHeading || 360 - event.alpha;
+function handleOrientation(e){
+  if(e.absolute || e.webkitCompassHeading){
+    currentHeading = e.webkitCompassHeading || 360 - e.alpha;
   }
   updateArrow();
 }
-
 function handlePosition(pos){
   currentPos = pos.coords;
   updateArrow();
 }
-
 function updateArrow(){
   if(!currentPos) return;
   const dist = distance(currentPos.latitude, currentPos.longitude, target.lat, target.lon);
   const bear = bearing(currentPos.latitude, currentPos.longitude, target.lat, target.lon);
   const angle = (bear - currentHeading + 360) % 360;
   document.getElementById('arrow').style.transform = `rotate(${angle}deg)`;
-
   const status = document.getElementById('status');
-  if(dist > 50){
-    status.textContent = `.encore ${Math.round(dist)} mètres...`;
-  } else if(dist > 20){
-    status.textContent = ".tu y es presque...";
-  } else {
-    status.textContent = ".regarde autour de toi... la croix t’attend.";
-  }
+  if(dist > 50) status.textContent = `.encore ${Math.round(dist)} mètres...`;
+  else if(dist > 20) status.textContent = ".tu y es presque...";
+  else status.textContent = ".regarde autour de toi... la croix t’attend.";
 }
 
-// === Initialisation ===
 function init(){
-  document.querySelector('.tap').style.display='none';
+  document.querySelector('.tap').style.display = 'none';
 
-  // Lecture de la musique d’ambiance
-  const music = new Audio(horror20);
-  music.loop = true;
-  music.volume = 1.0;
-  music.play().catch(()=>alert("Active le son pour l’expérience."));
+  // musique d'ambiance
+  if(!musicStarted){
+    const music = new Audio(horror20);
+    music.loop = true;
+    music.volume = 1.0;
+    music.play().catch(()=>console.log("Audio bloqué par le navigateur."));
+    musicStarted = true;
+  }
 
-  // Autorisation boussole
+  // boussole
   if(window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission==='function'){
     DeviceOrientationEvent.requestPermission().then(state=>{
       if(state==='granted'){
