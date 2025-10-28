@@ -34,11 +34,6 @@ h1 {
   font-size: 1.1em;
   color: #fff;
 }
-svg {
-  width: 100%;
-  height: 100%;
-  fill: #941F06;
-}
 .tap {
   position: fixed;
   bottom: 15px;
@@ -49,50 +44,39 @@ svg {
 </style>
 </head>
 <body>
-  <h1>.huser6666666. Bonjour Christilla. .allons-y.</h1>
-  <div id="arrow">
-    <svg viewBox="0 0 24 24">
-      <path d="M12 2L4 10h5v10h6V10h5L12 2z"/>
-    </svg>
-  </div>
-  <div id="status">activation du GPS...</div>
-  <div class="tap">(tape l’écran pour activer le GPS et la boussole)</div>
+<h1>.huser6666666. Bonjour Christilla. .allons-y.</h1>
+<div id="arrow">
+  <svg viewBox="0 0 24 24" width="120" height="120" fill="#941F06">
+    <path d="M12 2L4 10h5v10h6V10h5L12 2z"/>
+  </svg>
+</div>
+<div id="status">activation du GPS...</div>
+<div class="tap">(tape l’écran pour activer le GPS et la boussole)</div>
 
 <script>
-// === CONFIG ===
-const target = { lat: 49.033094, lon: 2.077448 }; // 🧭 change ici
+const target = { lat: 49.033094, lon: 2.077448 };
+
+// 🔊 Tes sons ici
 const sound100 = "https://www.chosic.com/wp-content/uploads/2023/06/heartbeat-soundsmith-1(chosic.com).mp3";
 const sound50  = "https://www.chosic.com/wp-content/uploads/2023/06/heartbeat-soundsmith(chosic.com).mp3";
 const horror20 = "https://www.chosic.com/wp-content/uploads/2022/10/its-in-the-fog(chosic.com).mp3";
-// ==============
 
+let audioCtx;
+let buffers = {};
+let currentSource = null;
+let currentZone = "none";
 let currentPos = null;
 let currentHeading = 0;
-let currentZone = "none";
-let audioReady = false;
 
-const audioMap = {
-  beat100: new Audio(sound100),
-  beat50: new Audio(sound50),
-  horror: new Audio(horror20)
-};
-
-for (const a of Object.values(audioMap)) {
-  a.preload = "auto";
-  a.loop = false;
-  a.volume = 0;
-}
-
-// utilitaires
-function toRad(d){ return d * Math.PI / 180; }
-function toDeg(r){ return r * 180 / Math.PI; }
-
-function distance(lat1, lon1, lat2, lon2) {
+// --- utilitaires géo ---
+function toRad(d){return d*Math.PI/180;}
+function toDeg(r){return r*180/Math.PI;}
+function distance(lat1,lon1,lat2,lon2){
   const R=6371e3;
   const φ1=toRad(lat1), φ2=toRad(lat2);
   const Δφ=toRad(lat2-lat1), Δλ=toRad(lon2-lon1);
   const a=Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 function bearing(lat1,lon1,lat2,lon2){
   const φ1=toRad(lat1), φ2=toRad(lat2);
@@ -102,99 +86,99 @@ function bearing(lat1,lon1,lat2,lon2){
   return (toDeg(Math.atan2(y,x))+360)%360;
 }
 
-function handleOrientation(e){
-  if(e.absolute || e.webkitCompassHeading){
-    currentHeading = e.webkitCompassHeading || 360 - e.alpha;
-  }
-  updateArrow();
+// --- audio ---
+async function loadSound(url){
+  const resp = await fetch(url);
+  const buf = await resp.arrayBuffer();
+  return await audioCtx.decodeAudioData(buf);
 }
 
-function handlePosition(pos){
-  currentPos = pos.coords;
-  updateArrow();
+function playBuffer(buf, loop=false, vol=1.0){
+  stopCurrent();
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
+  src.loop = loop;
+  const gain = audioCtx.createGain();
+  gain.gain.value = vol;
+  src.connect(gain).connect(audioCtx.destination);
+  src.start(0);
+  currentSource = src;
 }
 
-// gestion du son
-function playSound(key, loop=false, volume=0.8){
-  const a = audioMap[key];
-  if(!a) return;
-  a.loop = loop;
-  a.volume = volume;
-  a.currentTime = 0;
-  a.play().catch(()=>{});
-}
-function stopAll(){
-  for(const a of Object.values(audioMap)){
-    a.pause();
-    a.currentTime = 0;
-    a.volume = 0;
+function stopCurrent(){
+  if(currentSource){
+    try{ currentSource.stop(); }catch(e){}
+    currentSource = null;
   }
 }
 
 function switchZone(zone){
   if(zone === currentZone) return;
   currentZone = zone;
-  stopAll();
-  if(!audioReady) return;
+  stopCurrent();
 
-  if(zone === "100"){
-    playSound("beat100", true, 0.6);
-  } else if(zone === "50"){
-    playSound("beat50", true, 0.8);
-  } else if(zone === "20"){
-    playSound("horror", false, 1);
+  if(zone === "100" && buffers.b100) playBuffer(buffers.b100, true, 0.7);
+  else if(zone === "50" && buffers.b50) playBuffer(buffers.b50, true, 0.9);
+  else if(zone === "20" && buffers.horror) playBuffer(buffers.horror, false, 1);
+}
+
+// --- orientation / gps ---
+function handleOrientation(e){
+  if(e.absolute || e.webkitCompassHeading){
+    currentHeading = e.webkitCompassHeading || 360 - e.alpha;
   }
+  updateArrow();
+}
+function handlePosition(pos){
+  currentPos = pos.coords;
+  updateArrow();
 }
 
 function updateArrow(){
   if(!currentPos) return;
   const dist = distance(currentPos.latitude, currentPos.longitude, target.lat, target.lon);
   const bear = bearing(currentPos.latitude, currentPos.longitude, target.lat, target.lon);
-  const angle = (bear - currentHeading + 360) % 360;
-  document.getElementById("arrow").style.transform = `rotate(${angle}deg)`;
+  const angle = (bear - currentHeading + 360)%360;
+  document.getElementById('arrow').style.transform=`rotate(${angle}deg)`;
 
-  const status = document.getElementById("status");
-  if(dist > 100){
-    status.textContent = `.encore ${Math.round(dist)} mètres...`;
-    switchZone("none");
-  } else if(dist > 50){
-    status.textContent = ".tu t'approches...";
-    switchZone("100");
-  } else if(dist > 20){
-    status.textContent = ".je sens ton souffle...";
-    switchZone("50");
-  } else {
-    status.textContent = ".regarde autour de toi... la croix t'attend.";
-    switchZone("20");
-  }
+  const status=document.getElementById('status');
+  if(dist>100){ status.textContent=`.encore ${Math.round(dist)} mètres...`; switchZone("none"); }
+  else if(dist>50){ status.textContent=".tu t'approches..."; switchZone("100"); }
+  else if(dist>20){ status.textContent=".je sens ton souffle..."; switchZone("50"); }
+  else { status.textContent=".regarde autour de toi... la croix t'attend."; switchZone("20"); }
 }
 
-// démarrage
-function init(){
-  document.querySelector(".tap").style.display="none";
+// --- init ---
+async function init(){
+  document.querySelector('.tap').style.display='none';
 
-  // autorisation audio (obligatoire mobile)
-  for (const a of Object.values(audioMap)) {
-    a.play().then(()=>a.pause()).catch(()=>{});
-  }
-  audioReady = true;
+  // Crée un contexte audio déverrouillé
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const dummy = audioCtx.createOscillator();
+  dummy.connect(audioCtx.destination);
+  dummy.start();
+  dummy.stop();
 
+  // Précharge les sons
+  buffers.b100 = await loadSound(sound100);
+  buffers.b50  = await loadSound(sound50);
+  buffers.horror = await loadSound(horror20);
+
+  // active la boussole
   if(window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission==='function'){
     DeviceOrientationEvent.requestPermission().then(state=>{
-      if(state==='granted'){
-        window.addEventListener('deviceorientation', handleOrientation, true);
-      } else alert("Autorise la boussole pour jouer !");
+      if(state==='granted') window.addEventListener('deviceorientation',handleOrientation,true);
+      else alert("Autorise la boussole pour jouer !");
     });
-  } else {
-    window.addEventListener('deviceorientation', handleOrientation, true);
-  }
+  }else window.addEventListener('deviceorientation',handleOrientation,true);
 
+  // active le GPS
   navigator.geolocation.watchPosition(handlePosition, e=>{
     document.getElementById('status').textContent="GPS indisponible...";
   }, {enableHighAccuracy:true});
 }
 
-document.body.addEventListener("click", init, {once:true});
+document.body.addEventListener('click', init, {once:true});
 </script>
 </body>
 </html>
