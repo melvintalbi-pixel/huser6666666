@@ -1,162 +1,99 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>.huser6666666 - Le compte à rebours</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<title>.huser6666666 - une info en plus ?</title>
 <style>
-body {
-  background: #000;
-  color: #eee;
-  font-family: 'Courier New', monospace;
-  text-align: center;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-  transition: background 0.3s, color 0.3s;
-}
-
-h1 {
-  color: #941F06;
-  letter-spacing: 2px;
-  font-size: 1.4em;
-  margin-bottom: 10px;
-}
-
-#timer {
-  font-size: 3em;
-  color: #fff;
-  margin: 20px 0;
-  text-shadow: 0 0 15px #941F06;
-}
-
-#message {
-  font-size: 1.1em;
-  color: #aaa;
-  margin-bottom: 15px;
-}
-
-input {
-  background: #111;
-  border: 1px solid #941F06;
-  color: #fff;
-  padding: 10px;
-  border-radius: 6px;
-  text-align: center;
-  font-size: 18px;
-  width: 120px;
-  outline: none;
-}
-
-button {
-  margin-top: 15px;
-  background: #941F06;
-  color: #fff;
-  border: none;
-  padding: 10px 20px;
-  font-size: 16px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-#end {
-  display: none;
-  font-size: 1.3em;
-  color: #941F06;
-  margin-top: 30px;
-  animation: blink 1s infinite;
-}
-
-@keyframes blink {
-  0%, 50%, 100% { opacity: 1; }
-  25%, 75% { opacity: 0; }
-}
+  body {
+    background: #000;
+    color: #eee;
+    font-family: 'Courier New', monospace;
+    text-align: center;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    transition: background 0.3s, color 0.3s;
+  }
+  h1 { color: #941F06; letter-spacing:2px; font-size:1.4em; margin-bottom:10px; }
+  #message { color:#aaa; margin-bottom:20px; }
+  input {
+    background:#111; border:1px solid #941F06; color:#fff; padding:10px; border-radius:6px;
+    text-align:center; font-size:18px; width:160px; outline:none;
+  }
+  button {
+    margin-top:12px; background:#941F06; color:#fff; border:none; padding:10px 20px;
+    font-size:16px; border-radius:6px; cursor:pointer;
+  }
+  #feedback { margin-top:14px; height:22px; color:#f5c; }
 </style>
 </head>
 <body>
-  <h1>.huser6666666 te met à l’épreuve</h1>
-  <div id="message">Tu as <b>3 minutes</b> pour trouver le code.</div>
-  <div id="timer">03:00</div>
+  <h1>.huser6666666 te dois un nouveau fichier.</h1>
+  <div id="message">trouve le code et entre-le ici.</div>
 
-  <input id="codeInput" placeholder="entre le code...">
+  <input id="codeInput" placeholder="entre le code fast..." autocomplete="off" />
   <button id="checkBtn">valider</button>
-  <div id="end"></div>
+
+  <div id="feedback"></div>
+  
 
 <script>
 // === CONFIG ===
-const correctCode = "666"; // 🔢 change ici
-const redirectURL = "https://tonsite.fr/gazette.jpg"; // 📜 lien final
-const totalTime = 3 * 60; // secondes (3 minutes)
-const heartBeat = "https://www.chosic.com/wp-content/uploads/2023/06/heartbeat-soundsmith(chosic.com).mp3";
+const correctCode = "19554";                // <-- remplace par ton code
+const redirectURL  = "https://tonsite.fr/gazette.jpg"; // <-- url de la gazette
+const ambienceURL  = "https://www.chosic.com/wp-content/uploads/2023/06/heartbeat-soundsmith(chosic.com).mp3";
 // ==============
 
-let timeLeft = totalTime;
-let timerInterval;
-let audio;
+let audio = null;
+let audioStarted = false;
 
-// Format du timer
-function formatTime(s) {
-  const m = Math.floor(s / 60);
-  const sec = s % 60;
-  return `${m.toString().padStart(2,"0")}:${sec.toString().padStart(2,"0")}`;
-}
-
-// Mise à jour du compte à rebours
-function updateTimer() {
-  const timer = document.getElementById('timer');
-  timer.textContent = formatTime(timeLeft);
-  if (timeLeft <= 0) {
-    clearInterval(timerInterval);
-    gameOver();
-  }
-  timeLeft--;
-}
-
-// Fin du jeu (échec)
-function gameOver() {
-  document.body.style.background = "#000";
-  document.body.style.color = "#941F06";
-  document.body.innerHTML = "<h1>.trop tard.</h1>";
-  if (audio) audio.pause();
-}
-
-// Validation du code
-function checkCode() {
-  const val = document.getElementById("codeInput").value.trim();
-  if (val === correctCode) {
-    document.getElementById('end').textContent = ".tu as réussi.";
-    document.getElementById('end').style.display = "block";
-    clearInterval(timerInterval);
-    if (audio) audio.pause();
-    setTimeout(() => {
-      alert(".le silence se brise... regarde la gazette.");
-      window.location.href = redirectURL;
-    }, 2000);
-  } else {
-    document.getElementById('end').textContent = ".mauvais code.";
-    document.getElementById('end').style.display = "block";
-  }
-}
-
-// Lancement du jeu après interaction
-function startGame() {
-  document.body.removeEventListener("click", startGame);
-
-  // Musique de fond
-  audio = new Audio(heartBeat);
+// démarre la musique au premier tap (débloque audio sur mobile)
+async function startAudioOnce() {
+  if (audioStarted) return;
+  audioStarted = true;
+  audio = new Audio(ambienceURL);
   audio.loop = true;
   audio.volume = 0.9;
-  audio.play().catch(()=>{});
-
-  // Lancement du compte à rebours
-  timerInterval = setInterval(updateTimer, 1000);
+  audio.play().catch(()=>{/* si bloqué, tant pis */});
 }
 
-document.getElementById("checkBtn").addEventListener("click", checkCode);
-document.body.addEventListener("click", startGame, { once:true });
+// vérifie le code entré
+function checkCode() {
+  const val = document.getElementById('codeInput').value.trim();
+  const fb = document.getElementById('feedback');
+
+  if (!val) {
+    fb.textContent = ".entre quelque chose.";
+    return;
+  }
+
+  if (val === correctCode) {
+    fb.style.color = "#0f0";
+    fb.textContent = ".tu as réussi.";
+    if (audio) audio.pause();
+    setTimeout(()=> {
+      // message bref puis redirection
+      alert(".le silence se brise... regarde la gazette.");
+      window.location.href = redirectURL;
+    }, 900);
+  } else {
+    fb.style.color = "#f66";
+    fb.textContent = ".mauvais code.";
+  }
+}
+
+// événement sur bouton
+document.getElementById('checkBtn').addEventListener('click', checkCode);
+document.getElementById('codeInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') checkCode();
+});
+
+// listener pour activer musique à la première interaction
+document.body.addEventListener('click', startAudioOnce, { once: true });
 </script>
 </body>
 </html>
