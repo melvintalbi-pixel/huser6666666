@@ -115,11 +115,11 @@ function checkCode() {
 function flashScreen() {
   const flash = document.getElementById('flash');
   flash.style.opacity = 1;
-  setTimeout(()=> flash.style.opacity = 0, 80); // flash très rapide
+  setTimeout(()=> flash.style.opacity = 0, 400); // flash très rapide
 }
 
 // Lancer flash toutes les 20 secondes
-setInterval(flashScreen, 20000);
+setInterval(flashScreen, 12000);
 
 // événement sur bouton
 document.getElementById('checkBtn').addEventListener('click', checkCode);
