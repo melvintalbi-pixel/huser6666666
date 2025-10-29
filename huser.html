@@ -29,6 +29,27 @@
     font-size:16px; border-radius:6px; cursor:pointer;
   }
   #feedback { margin-top:14px; height:22px; color:#f5c; }
+
+  /* === Flash === */
+  #flash {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.05s ease;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  #flash svg {
+    width: 120px;
+    height: 120px;
+    fill: #000;
+  }
 </style>
 </head>
 <body>
@@ -37,14 +58,19 @@
 
   <input id="codeInput" placeholder="entre le code fast..." autocomplete="off" />
   <button id="checkBtn">valider</button>
-
   <div id="feedback"></div>
-  
+
+  <!-- Flash visuel -->
+  <div id="flash">
+    <svg viewBox="0 0 24 24">
+      <path d="M7 2C5.9 2 5 2.9 5 4v16c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2H7zm5 21c-.55 0-1-.45-1-1h2c0 .55-.45 1-1 1zm3-4H8V5h7v14z"/>
+    </svg>
+  </div>
 
 <script>
 // === CONFIG ===
-const correctCode = "19554";                // <-- remplace par ton code
-const redirectURL  = "https://melvintalbi-pixel.github.io/huser6666666/gazette.html"; // <-- url de la gazette
+const correctCode = "19554";                
+const redirectURL  = "https://melvintalbi-pixel.github.io/huser6666666/gazette.html";
 const ambienceURL  = "https://www.chosic.com/wp-content/uploads/2023/06/heartbeat-soundsmith(chosic.com).mp3";
 // ==============
 
@@ -58,7 +84,7 @@ async function startAudioOnce() {
   audio = new Audio(ambienceURL);
   audio.loop = true;
   audio.volume = 0.9;
-  audio.play().catch(()=>{/* si bloqué, tant pis */});
+  audio.play().catch(()=>{/* audio bloqué, tant pis */});
 }
 
 // vérifie le code entré
@@ -76,7 +102,6 @@ function checkCode() {
     fb.textContent = ".tu as réussi.";
     if (audio) audio.pause();
     setTimeout(()=> {
-      // message bref puis redirection
       alert(".le silence se brise... regarde la gazette.");
       window.location.href = redirectURL;
     }, 900);
@@ -85,6 +110,16 @@ function checkCode() {
     fb.textContent = ".mauvais code.";
   }
 }
+
+// === Flash effet ===
+function flashScreen() {
+  const flash = document.getElementById('flash');
+  flash.style.opacity = 1;
+  setTimeout(()=> flash.style.opacity = 0, 80); // flash très rapide
+}
+
+// Lancer flash toutes les 20 secondes
+setInterval(flashScreen, 20000);
 
 // événement sur bouton
 document.getElementById('checkBtn').addEventListener('click', checkCode);
