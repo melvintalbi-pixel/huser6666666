@@ -168,6 +168,9 @@ function smartReply(userText) {
   if (/mort|mourir|tombe|cimet/.test(t))
     return pick([".elle est plus proche que tu ne crois.",".la mort écoute, patiente.",".tu parles d'elle comme d'une vieille amie."]);
 
+    if (/vico|victoria|cricri|christilla|chris|cris/.test(t))
+    return pick([".bordel j'aurais choisis pareil ahha sert a rien.",".ahah batard, mais j'avoue bon choix bref..."]);
+
   if (/ta mère|ta maman|ta daronne|ta mere/.test(t))
     return pick([
       ".parle encore une fois de ma mère comme ça je vais te hanter le cul, gicler ce que j\\'ai de plus puissant et maléfique dans ton âme dégueulasse ! et ça jusqu\\'à la fin de tes jours."
