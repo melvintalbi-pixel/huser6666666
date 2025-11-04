@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>L'Atelier — Mini Escape Game</title>
+  <meta name="description" content="Un escape game web en 3 énigmes, jouable directement. Aucun serveur nécessaire." />
+  <style>
+    :root{
+      --bg:#0a0f1a;          /* fond nuit */
+      --panel:#0f1626;       /* panneaux */
+      --ink:#e6edf6;         /* texte clair */
+      --muted:#9fb0c3;       /* texte secondaire */
+      --accent:#7cc0ff;      /* bleu néon */
+      --accent-2:#aaf683;    /* vert néon */
+      --accent-3:#ffbe0b;    /* or */
+      --danger:#ff5c8a;      /* rose */
+      --ok:#8cffc1;          /* vert menthe */
+      --shadow: 0 10px 30px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.03);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 70% -100px, rgba(124,192,255,.15), transparent 60%), var(--bg);
+      color:var(--ink);
+    }
+    .container{max-width:980px;margin:0 auto;padding:28px}
+    header{display:flex;align-items:center;gap:16px;margin:6px 0 22px}
+    header h1{font-size:clamp(1.4rem,2.4vw,2rem);margin:0;letter-spacing:.5px}
+    header .badge{padding:6px 10px;border-radius:999px;background:linear-gradient(135deg,rgba(124,192,255,.15),rgba(170,246,131,.15));border:1px solid rgba(255,255,255,.08);font-size:.85rem;color:var(--muted)}
+
+    .panel{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.00));border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin:14px 0}
+
+    .row{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}
+    @media (max-width:800px){.row{grid-template-columns:1fr}}
+
+    .room-title{font-weight:700;letter-spacing:.3px;margin:0 0 6px;font-size:1.1rem;color:var(--accent)}
+    .story{color:var(--muted);line-height:1.5}
+
+    .controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+    .btn{appearance:none;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.02);color:var(--ink);padding:10px 14px;border-radius:12px;cursor:pointer;transition:transform .05s ease, background .2s ease, border-color .2s ease;box-shadow:var(--shadow);font-weight:600}
+    .btn:hover{background:rgba(124,192,255,.08)}
+    .btn:active{transform:translateY(1px)}
+    .btn.primary{background:linear-gradient(135deg,rgba(124,192,255,.18),rgba(170,246,131,.14));border-color:rgba(124,192,255,.35)}
+    .btn.ghost{background:transparent}
+
+    .lock{display:grid;gap:8px}
+    .lock label{color:var(--muted);font-size:.9rem}
+    .input{display:flex;gap:10px;align-items:center}
+    input[type="text"], input[type="number"]{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.02);color:var(--ink);font-weight:600;letter-spacing:.6px}
+    input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-inner-spin-button{appearance:none;margin:0}
+
+    .status{font-size:.9rem}
+    .status.ok{color:var(--ok)}
+    .status.err{color:var(--danger)}
+    .hint{font-size:.92rem;color:var(--muted);background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.15);padding:10px 12px;border-radius:12px;margin-top:10px}
+
+    .uv-note{position:relative;border-radius:16px;border:1px solid rgba(124,192,255,.25);background:repeating-linear-gradient( -8deg, rgba(124,192,255,.05), rgba(124,192,255,.05) 14px, rgba(255,255,255,0) 14px, rgba(255,255,255,0) 28px ), rgba(255,255,255,.02);padding:14px 16px;line-height:1.6;min-height:120px}
+    .uv{color:var(--bg);text-shadow:none;transition:color .2s ease}
+    body.uv-on .uv{color:var(--accent);text-shadow:0 0 12px rgba(124,192,255,.75)}
+    .uv-lamp{display:inline-flex;align-items:center;gap:8px}
+    .uv-lamp .dot{width:10px;height:10px;border-radius:50%;background:rgba(124,192,255,.2);box-shadow:0 0 0 0 rgba(124,192,255,.0);transition:all .25s ease}
+    body.uv-on .uv-lamp .dot{background:var(--accent);box-shadow:0 0 16px 3px rgba(124,192,255,.6)}
+
+    .compass{position:relative;aspect-ratio:1/1;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:radial-gradient(circle at 50% 55%, rgba(255,255,255,.06), rgba(255,255,255,0) 48%), rgba(255,255,255,.02);display:grid;place-items:center;box-shadow:var(--shadow)}
+    .needle{position:absolute;width:2px;height:46%;background:linear-gradient(var(--accent), transparent);transform-origin:50% 90%;transform:rotate(0deg);transition:transform .5s ease}
+    .marks{position:absolute;inset:8px;display:grid;place-items:center;font-weight:700;color:var(--muted)}
+    .marks span{position:absolute}
+    .marks .n{top:4px}
+    .marks .e{right:6px}
+    .marks .s{bottom:4px}
+    .marks .o{left:6px}
+
+    .poem{white-space:pre-line;color:var(--muted)}
+
+    .final-banner{display:none; position:fixed;inset:0;background:rgba(10,15,26,.85);backdrop-filter: blur(6px);z-index:50;align-items:center;justify-content:center}
+    .final-card{max-width:680px;margin:20px;background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.12);border-radius:24px;box-shadow:var(--shadow);padding:24px;text-align:center}
+    .final-card h2{margin-top:0}
+
+    .topbar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .stats{display:flex;gap:12px;color:var(--muted);font-size:.95rem}
+    .chip{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1)}
+
+    .token{display:inline-block;padding:3px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(170,246,131,.08);color:var(--accent-2);font-weight:700;margin-left:6px}
+
+    .hidden{display:none}
+
+    /* confetti */
+    .confetti{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:60}
+    .confetti i{position:absolute;width:10px;height:16px;background:currentColor;top:-20px;opacity:.9;animation:fall linear forwards}
+    @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">Escape — 3 énigmes</div>
+      <h1>L'Atelier aux Lueurs</h1>
+    </header>
+
+    <div class="topbar panel">
+      <div class="stats">
+        <div class="chip" id="timer" aria-live="polite">⏱️ 00:00</div>
+        <div class="chip" id="progress">🔒 Progression : 0/3</div>
+      </div>
+      <div class="controls">
+        <button class="btn ghost" id="btnUV" aria-pressed="false" aria-label="Activer la lampe UV">🔦 UV</button>
+        <button class="btn ghost" id="btnReset" aria-label="Recommencer">↺ Réinitialiser</button>
+      </div>
+    </div>
+
+    <!-- ROOM 1 -->
+    <section class="panel" id="room1" aria-labelledby="room1-title">
+      <div class="row">
+        <div>
+          <h2 class="room-title" id="room1-title">Salle 1 — La Note sous UV (mot de passe 5 lettres)</h2>
+          <p class="story">La porte est close. Sur l'établi, une vieille note maculée et une petite <span class="uv-lamp"><span class="dot"></span> lampe UV</span>. Quel mot révèle la lumière ?</p>
+          <div class="uv-note" aria-label="Note tachée" role="region">
+            Dans les <span class="uv">L</span>ignes et les taches, une phrase revient : 
+            « Quand la <span class="uv">U</span>mbrE se dissipe, <span class="uv">M</span>onte la clarté, 
+            car la <span class="uv">E</span>tincelle naît et te <span class="uv">N</span>omme. »
+          </div>
+          <div class="hint" id="hint1" hidden>💡 Astuce : clique sur 🔦 UV en haut. Regarde les lettres qui <em>apparaissent</em> dans la note.</div>
+        </div>
+        <div>
+          <div class="lock" role="form" aria-label="Cadenas salle 1">
+            <label for="answer1">Entrer le mot (5 lettres)</label>
+            <div class="input">
+              <input id="answer1" type="text" pattern="[a-zA-Z]{5}" placeholder="ex : LUMEN" autocomplete="off" aria-describedby="status1" />
+              <button class="btn primary" id="submit1">Déverrouiller</button>
+            </div>
+            <div class="status" id="status1" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ROOM 2 -->
+    <section class="panel hidden" id="room2" aria-labelledby="room2-title">
+      <div class="row">
+        <div>
+          <h2 class="room-title" id="room2-title">Salle 2 — La Rose des Vents (code 4 chiffres)</h2>
+          <p class="story">Une boussole incrustée trône au centre. Un court poème est gravé sur une plaque.</p>
+          <div class="row">
+            <div class="compass" aria-hidden="true">
+              <div class="needle" id="needle"></div>
+              <div class="marks">
+                <span class="n">N</span>
+                <span class="e">E</span>
+                <span class="s">S</span>
+                <span class="o">O</span>
+              </div>
+            </div>
+            <pre class="poem panel" style="margin:0">
+« Écoute le vent, compte ses lettres,
+  Suis l'aiguille : N → E → S → O,
+  Quatre souffles, un nombre naît. »</pre>
+          </div>
+          <div class="hint" id="hint2" hidden>💡 Astuce : Combien de lettres dans chaque mot du vent en <strong>français</strong> ? Nord (4), Est (?), Sud (?), Ouest (?). Garde l'ordre N-E-S-O.</div>
+        </div>
+        <div>
+          <div class="lock" aria-label="Cadenas salle 2">
+            <label for="answer2">Entrer le code (4 chiffres)</label>
+            <div class="input">
+              <input id="answer2" type="number" inputmode="numeric" placeholder="— — — —" aria-describedby="status2" />
+              <button class="btn primary" id="submit2">Déverrouiller</button>
+            </div>
+            <div class="status" id="status2" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ROOM 3 -->
+    <section class="panel hidden" id="room3" aria-labelledby="room3-title">
+      <div class="row">
+        <div>
+          <h2 class="room-title" id="room3-title">Salle 3 — L'Acrostiche (mot de passe 3 lettres)</h2>
+          <p class="story">Derrière la seconde porte, un parchemin porte trois vers finement calligraphiés. On dirait que <em>l'initiale</em> de chaque ligne est importante…</p>
+          <pre class="poem panel" style="margin:0">
+<b>É</b>nigmes et lumières guideront ta sortie.
+<b>R</b>assemble les clés des épreuves passées.
+<b>E</b>nsuite, scelle la porte d'un seul mot.</pre>
+          <div class="hint" id="hint3" hidden>💡 Astuce : Prends les <strong>premières lettres</strong> de chaque ligne. Écris le mot obtenu en <strong>minuscules</strong> ou <strong>majuscules</strong>, les accents sont ignorés.</div>
+        </div>
+        <div>
+          <div class="lock" aria-label="Cadenas salle 3">
+            <label for="answer3">Entrer le mot (3 lettres)</label>
+            <div class="input">
+              <input id="answer3" type="text" placeholder="— — —" aria-describedby="status3" />
+              <button class="btn primary" id="submit3">Déverrouiller</button>
+            </div>
+            <div class="status" id="status3" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="inventory">
+      <strong>Inventaire :</strong>
+      <span class="story">jetons récupérés →</span>
+      <span id="tokens"></span>
+    </section>
+
+    <footer class="panel" style="text-align:center;color:var(--muted);font-size:.9rem">
+      Astuce : si tu es bloqué·e, clique sur les astuces 💡 qui apparaissent après quelques essais.
+    </footer>
+  </div>
+
+  <!-- FIN -->
+  <div class="final-banner" id="final">
+    <div class="final-card">
+      <h2>🎉 Bravo ! Tu t'es échappé·e.</h2>
+      <p>Temps total : <strong id="finalTime">—</strong> · Jetons réunis : <strong id="finalTokens">—</strong></p>
+      <p class="story">Le mot secret formé est <strong>LUMIÈRE</strong> (LU + MI + ÈRE). Merci d'avoir joué ✨</p>
+      <div class="controls" style="justify-content:center">
+        <button class="btn primary" id="playAgain">Rejouer</button>
+      </div>
+    </div>
+    <div class="confetti" id="confetti" aria-hidden="true"></div>
+  </div>
+
+  <script>
+  (function(){
+    const $ = (sel,root=document)=>root.querySelector(sel);
+    const $$= (sel,root=document)=>Array.from(root.querySelectorAll(sel));
+
+    // --- STATE ---
+    const state = {
+      startedAt: Date.now(),
+      timerEl: $('#timer'),
+      progressEl: $('#progress'),
+      tokensEl: $('#tokens'),
+      tries: { r1:0, r2:0, r3:0 },
+      solved: { r1:false, r2:false, r3:false },
+      tokens: [],
+    };
+
+    // Restore from localStorage if present
+    try{
+      const saved = JSON.parse(localStorage.getItem('escape_state')||'null');
+      if(saved && saved.version===1){ Object.assign(state, saved.state); }
+    }catch{ /* ignore */ }
+
+    function persist(){
+      localStorage.setItem('escape_state', JSON.stringify({version:1, state}));
+    }
+
+    // --- TIMER ---
+    const startTime = state.startedAt || Date.now();
+    function tick(){
+      const s = Math.floor((Date.now()-startTime)/1000);
+      const m = Math.floor(s/60).toString().padStart(2,'0');
+      const r = (s%60).toString().padStart(2,'0');
+      state.timerEl.textContent = `⏱️ ${m}:${r}`;
+      requestAnimationFrame(()=>setTimeout(tick, 500));
+    }
+    tick();
+
+    // --- UV toggle ---
+    const btnUV = $('#btnUV');
+    btnUV.addEventListener('click', ()=>{
+      const on = !document.body.classList.contains('uv-on');
+      document.body.classList.toggle('uv-on', on);
+      btnUV.setAttribute('aria-pressed', String(on));
+    });
+
+    // --- INVENTORY & PROGRESS ---
+    function refreshInventory(){
+      state.tokensEl.innerHTML = state.tokens.map(t=>`<span class="token">${t}</span>`).join(' ');
+      const solvedCount = Object.values(state.solved).filter(Boolean).length;
+      state.progressEl.textContent = `🔒 Progression : ${solvedCount}/3`;
+    }
+
+    function reveal(sectionId){
+      $(sectionId).classList.remove('hidden');
+    }
+
+    function status(el, ok, msg){
+      el.textContent = msg;
+      el.className = 'status ' + (ok? 'ok':'err');
+    }
+
+    // Hints after 2 wrong tries
+    function maybeHint(room, hintId){
+      if(state.tries[room] >= 2){ $(hintId).hidden = false; }
+    }
+
+    // --- ROOM 1 --- (answer: LUMEN)
+    const a1 = $('#answer1'), s1 = $('#status1');
+    $('#submit1').addEventListener('click', ()=>{
+      const val = (a1.value||'').trim().toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'');
+      state.tries.r1++;
+      if(val === 'lumen'){
+        status(s1, true, '✅ Correct ! Un jeton brille : « LU »');
+        state.solved.r1 = true;
+        if(!state.tokens.includes('LU')) state.tokens.push('LU');
+        reveal('#room2');
+        refreshInventory();
+        persist();
+      }else{
+        status(s1, false, '❌ Ce n\'est pas ça. Regarde mieux la note avec la lampe UV.');
+        maybeHint('r1', '#hint1');
+        persist();
+      }
+    });
+
+    // --- ROOM 2 --- (answer: 4335 from Nord(4), Est(3), Sud(3), Ouest(5))
+    const needle = $('#needle');
+    let angle = 0;
+    setInterval(()=>{ angle = (angle+90)%360; needle.style.transform = `rotate(${angle}deg)`; }, 2200);
+
+    const a2 = $('#answer2'), s2 = $('#status2');
+    $('#submit2').addEventListener('click', ()=>{
+      const val = (a2.value||'').trim();
+      state.tries.r2++;
+      if(val === '4335'){
+        status(s2, true, '✅ Bien joué ! Un jeton s\'ajoute : « MI »');
+        state.solved.r2 = true;
+        if(!state.tokens.includes('MI')) state.tokens.push('MI');
+        reveal('#room3');
+        refreshInventory();
+        persist();
+      }else{
+        status(s2, false, '❌ Non. Compte les lettres des vents en français dans l\'ordre N-E-S-O.');
+        maybeHint('r2', '#hint2');
+        persist();
+      }
+    });
+
+    // --- ROOM 3 --- (answer: ERE from acrostic)
+    const a3 = $('#answer3'), s3 = $('#status3');
+    $('#submit3').addEventListener('click', ()=>{
+      let val = (a3.value||'').trim().toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'');
+      state.tries.r3++;
+      if(val === 'ere'){
+        status(s3, true, '✅ Parfait ! Tu formes le dernier jeton : « ÈRE ».');
+        state.solved.r3 = true;
+        if(!state.tokens.includes('ÈRE')) state.tokens.push('ÈRE');
+        endGame();
+        persist();
+      }else{
+        status(s3, false, '❌ Regarde l\'initiale de chaque ligne du poème…');
+        maybeHint('r3', '#hint3');
+        persist();
+      }
+    });
+
+    // --- END ---
+    function endGame(){
+      refreshInventory();
+      $('#finalTime').textContent = $('#timer').textContent.replace('⏱️ ','');
+      $('#finalTokens').textContent = state.tokens.join(' + ');
+      $('#final').style.display = 'flex';
+      confetti();
+    }
+
+    // Confetti effect
+    function confetti(){
+      const area = $('#confetti');
+      area.innerHTML = '';
+      const colors = ['#7cc0ff', '#aaf683', '#ffbe0b', '#ff5c8a', '#e6edf6'];
+      for(let i=0;i<120;i++){
+        const p = document.createElement('i');
+        p.style.left = Math.random()*100+'%';
+        p.style.color = colors[Math.floor(Math.random()*colors.length)];
+        p.style.animationDuration = (4+Math.random()*3)+'s';
+        p.style.transform = `translateY(-20px) rotate(${Math.random()*360}deg)`;
+        area.appendChild(p);
+      }
+    }
+
+    // Reset
+    function resetAll(){
+      localStorage.removeItem('escape_state');
+      location.reload();
+    }
+    $('#btnReset').addEventListener('click', resetAll);
+    $('#playAgain').addEventListener('click', resetAll);
+
+    // Initial UI from state (if any)
+    if(state.solved.r1) reveal('#room2');
+    if(state.solved.r2) reveal('#room3');
+    refreshInventory();
+  })();
+  </script>
+</body>
+</html>
